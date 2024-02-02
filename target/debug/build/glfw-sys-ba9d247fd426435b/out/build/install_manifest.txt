@@ -1,0 +1,8 @@
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/libglfw3.a
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/include/GLFW/glfw3.h
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/include/GLFW/glfw3native.h
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/cmake/glfw3/glfw3Config.cmake
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/cmake/glfw3/glfw3Targets.cmake
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/cmake/glfw3/glfw3Targets-debug.cmake
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/lib/pkgconfig/glfw3.pc

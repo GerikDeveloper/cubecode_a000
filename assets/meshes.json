@@ -1,0 +1,57 @@
+[
+	{
+		"name": "air_block",
+		"mesh_type": "custom",
+		"mesh": {
+			"faces": []
+		}
+	},
+	{
+		"name": "unknown_block",
+		"mesh_type": "cube",
+		"mesh": {
+			"top": "unknown_block_top",
+			"bottom": "unknown_block_bottom",
+			"front": "unknown_block_front",
+			"back": "unknown_block_back",
+			"right": "unknown_block_right",
+			"left": "unknown_block_left"
+		}
+	},
+	{
+		"name": "dirt_block",
+		"mesh_type": "cube",
+		"mesh": {
+			"top": "dirt_block_top",
+			"bottom": "dirt_block_bottom",
+			"front": "dirt_block_front",
+			"back": "dirt_block_back",
+			"right": "dirt_block_right",
+			"left": "dirt_block_left"
+		}
+	},
+	{
+		"name": "grass_block",
+		"mesh_type": "cube",
+		"mesh": {
+			"top": "grass_block_top",
+			"bottom": "grass_block_bottom",
+			"front": "grass_block_front",
+			"back": "grass_block_back",
+			"right": "grass_block_right",
+			"left": "grass_block_left"
+		}
+	},
+	{
+		"name": "bedrock_block",
+		"mesh_type": "cube",
+		"mesh": {
+			"top": "bedrock_block_top",
+			"bottom": "bedrock_block_bottom",
+			"front": "bedrock_block_front",
+			"back": "bedrock_block_back",
+			"right": "bedrock_block_right",
+			"left": "bedrock_block_left"
+		}
+	}
+]

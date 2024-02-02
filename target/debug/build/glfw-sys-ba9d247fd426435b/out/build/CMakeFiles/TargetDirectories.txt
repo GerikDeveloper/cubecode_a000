@@ -1,0 +1,15 @@
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/uninstall.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/edit_cache.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/rebuild_cache.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/list_install_components.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/install.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/install/local.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/CMakeFiles/install/strip.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/update_mappings.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/glfw.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/edit_cache.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/rebuild_cache.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/list_install_components.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/install.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/install/local.dir
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/build/glfw-sys-ba9d247fd426435b/out/build/src/CMakeFiles/install/strip.dir

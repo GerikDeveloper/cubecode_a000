@@ -1,0 +1,10 @@
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/deps/librustc_serialize-dfe92432103a1b7f.rmeta: /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/lib.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/serialize.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/collection_impls.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/base64.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/hex.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/json.rs
+
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/deps/rustc_serialize-dfe92432103a1b7f.d: /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/lib.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/serialize.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/collection_impls.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/base64.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/hex.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/json.rs
+
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/lib.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/serialize.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/collection_impls.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/base64.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/hex.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc-serialize-0.3.25/src/json.rs:

@@ -1,0 +1,27 @@
+[
+	{
+		"id": 0,
+		"name": "air",
+		"mesh": "air_block"
+	},
+	{
+		"id": 1,
+		"name": "unknown",
+		"mesh": "unknown_block"
+	},
+	{
+		"id": 2,
+		"name": "dirt",
+		"mesh": "dirt_block"
+	},
+	{
+		"id": 3,
+		"name": "grass",
+		"mesh": "grass_block"
+	},
+	{
+		"id": 4,
+		"name": "bedrock",
+		"mesh": "bedrock_block"
+	}
+]

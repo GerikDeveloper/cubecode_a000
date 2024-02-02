@@ -1,0 +1,10 @@
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/deps/libserde_codegen_internals-db721c0704f86f6c.rmeta: /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/lib.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/ast.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/attr.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/error.rs
+
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/deps/libserde_codegen_internals-db721c0704f86f6c.rlib: /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/lib.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/ast.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/attr.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/error.rs
+
+/Users/usergerik/Documents/RustProjects/cubecode_a000/target/debug/deps/serde_codegen_internals-db721c0704f86f6c.d: /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/lib.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/ast.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/attr.rs /Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/error.rs
+
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/lib.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/ast.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/attr.rs:
+/Users/usergerik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_codegen_internals-0.8.9/src/error.rs:
