@@ -500,35 +500,26 @@ impl Mat4f {
     pub fn mul(&mut self, matrix: &Mat4f) -> &mut Self {
         let mut arg_mat = self.clone();
 
+        self.matrix[0][0] = ((matrix.matrix[0][0] * arg_mat.matrix[0][0]) + (matrix.matrix[1][0] * arg_mat.matrix[0][1]) + (matrix.matrix[2][0] * arg_mat.matrix[0][2]) + (matrix.matrix[3][0] * arg_mat.matrix[0][3]));
+        self.matrix[0][1] = ((matrix.matrix[0][1] * arg_mat.matrix[0][0]) + (matrix.matrix[1][1] * arg_mat.matrix[0][1]) + (matrix.matrix[2][1] * arg_mat.matrix[0][2]) + (matrix.matrix[3][1] * arg_mat.matrix[0][3]));
+        self.matrix[0][2] = ((matrix.matrix[0][2] * arg_mat.matrix[0][0]) + (matrix.matrix[1][2] * arg_mat.matrix[0][1]) + (matrix.matrix[2][2] * arg_mat.matrix[0][2]) + (matrix.matrix[3][2] * arg_mat.matrix[0][3]));
+        self.matrix[0][3] = ((matrix.matrix[0][3] * arg_mat.matrix[0][0]) + (matrix.matrix[1][3] * arg_mat.matrix[0][1]) + (matrix.matrix[2][3] * arg_mat.matrix[0][2]) + (matrix.matrix[3][3] * arg_mat.matrix[0][3]));
 
-        for y in [0, 1, 2, 3] {
-            for x in [0, 1, 2, 3] {
-                for z in [0, 1, 2, 3] {
-                    self.matrix[y][x] += (arg_mat.matrix[y][z] * matrix.matrix[z][x]);
-                }
-            }
-        }
-        /*
-        self.matrix[0][0] = ((arg_mat.matrix[0][0] * matrix.matrix[0][0]) + (arg_mat.matrix[1][0] * matrix.matrix[0][1]) + (arg_mat.matrix[2][0] * matrix.matrix[0][2]) + (arg_mat.matrix[3][0] * matrix.matrix[0][3]));
-        self.matrix[0][1] = ((arg_mat.matrix[0][1] * matrix.matrix[0][0]) + (arg_mat.matrix[1][1] * matrix.matrix[0][1]) + (arg_mat.matrix[2][1] * matrix.matrix[0][2]) + (arg_mat.matrix[3][1] * matrix.matrix[0][3]));
-        self.matrix[0][2] = ((arg_mat.matrix[0][2] * matrix.matrix[0][0]) + (arg_mat.matrix[1][2] * matrix.matrix[0][1]) + (arg_mat.matrix[2][2] * matrix.matrix[0][2]) + (arg_mat.matrix[3][2] * matrix.matrix[0][3]));
-        self.matrix[0][3] = ((arg_mat.matrix[0][3] * matrix.matrix[0][0]) + (arg_mat.matrix[1][3] * matrix.matrix[0][1]) + (arg_mat.matrix[2][3] * matrix.matrix[0][2]) + (arg_mat.matrix[3][3] * matrix.matrix[0][3]));
+        self.matrix[1][0] = ((matrix.matrix[0][0] * arg_mat.matrix[1][0]) + (matrix.matrix[1][0] * arg_mat.matrix[1][1]) + (matrix.matrix[2][0] * arg_mat.matrix[1][2]) + (matrix.matrix[3][0] * arg_mat.matrix[1][3]));
+        self.matrix[1][1] = ((matrix.matrix[0][1] * arg_mat.matrix[1][0]) + (matrix.matrix[1][1] * arg_mat.matrix[1][1]) + (matrix.matrix[2][1] * arg_mat.matrix[1][2]) + (matrix.matrix[3][1] * arg_mat.matrix[1][3]));
+        self.matrix[1][2] = ((matrix.matrix[0][2] * arg_mat.matrix[1][0]) + (matrix.matrix[1][2] * arg_mat.matrix[1][1]) + (matrix.matrix[2][2] * arg_mat.matrix[1][2]) + (matrix.matrix[3][2] * arg_mat.matrix[1][3]));
+        self.matrix[1][3] = ((matrix.matrix[0][3] * arg_mat.matrix[1][0]) + (matrix.matrix[1][3] * arg_mat.matrix[1][1]) + (matrix.matrix[2][3] * arg_mat.matrix[1][2]) + (matrix.matrix[3][3] * arg_mat.matrix[1][3]));
 
-        self.matrix[1][0] = ((arg_mat.matrix[0][0] * matrix.matrix[1][0]) + (arg_mat.matrix[1][0] * matrix.matrix[1][1]) + (arg_mat.matrix[2][0] * matrix.matrix[1][2]) + (arg_mat.matrix[3][0] * matrix.matrix[1][3]));
-        self.matrix[1][1] = ((arg_mat.matrix[0][1] * matrix.matrix[1][0]) + (arg_mat.matrix[1][1] * matrix.matrix[1][1]) + (arg_mat.matrix[2][1] * matrix.matrix[1][2]) + (arg_mat.matrix[3][1] * matrix.matrix[1][3]));
-        self.matrix[1][2] = ((arg_mat.matrix[0][2] * matrix.matrix[1][0]) + (arg_mat.matrix[1][2] * matrix.matrix[1][1]) + (arg_mat.matrix[2][2] * matrix.matrix[1][2]) + (arg_mat.matrix[3][2] * matrix.matrix[1][3]));
-        self.matrix[1][3] = ((arg_mat.matrix[0][3] * matrix.matrix[1][0]) + (arg_mat.matrix[1][3] * matrix.matrix[1][1]) + (arg_mat.matrix[2][3] * matrix.matrix[1][2]) + (arg_mat.matrix[3][3] * matrix.matrix[1][3]));
+        self.matrix[2][0] = ((matrix.matrix[0][0] * arg_mat.matrix[2][0]) + (matrix.matrix[1][0] * arg_mat.matrix[2][1]) + (matrix.matrix[2][0] * arg_mat.matrix[2][2]) + (matrix.matrix[3][0] * arg_mat.matrix[2][3]));
+        self.matrix[2][1] = ((matrix.matrix[0][1] * arg_mat.matrix[2][0]) + (matrix.matrix[1][1] * arg_mat.matrix[2][1]) + (matrix.matrix[2][1] * arg_mat.matrix[2][2]) + (matrix.matrix[3][1] * arg_mat.matrix[2][3]));
+        self.matrix[2][2] = ((matrix.matrix[0][2] * arg_mat.matrix[2][0]) + (matrix.matrix[1][2] * arg_mat.matrix[2][1]) + (matrix.matrix[2][2] * arg_mat.matrix[2][2]) + (matrix.matrix[3][2] * arg_mat.matrix[2][3]));
+        self.matrix[2][3] = ((matrix.matrix[0][3] * arg_mat.matrix[2][0]) + (matrix.matrix[1][3] * arg_mat.matrix[2][1]) + (matrix.matrix[2][3] * arg_mat.matrix[2][2]) + (matrix.matrix[3][3] * arg_mat.matrix[2][3]));
 
-        self.matrix[2][0] = ((arg_mat.matrix[0][0] * matrix.matrix[2][0]) + (arg_mat.matrix[1][0] * matrix.matrix[2][1]) + (arg_mat.matrix[2][0] * matrix.matrix[2][2]) + (arg_mat.matrix[3][0] * matrix.matrix[2][3]));
-        self.matrix[2][1] = ((arg_mat.matrix[0][1] * matrix.matrix[2][0]) + (arg_mat.matrix[1][1] * matrix.matrix[2][1]) + (arg_mat.matrix[2][1] * matrix.matrix[2][2]) + (arg_mat.matrix[3][1] * matrix.matrix[2][3]));
-        self.matrix[2][2] = ((arg_mat.matrix[0][2] * matrix.matrix[2][0]) + (arg_mat.matrix[1][2] * matrix.matrix[2][1]) + (arg_mat.matrix[2][2] * matrix.matrix[2][2]) + (arg_mat.matrix[3][2] * matrix.matrix[2][3]));
-        self.matrix[2][3] = ((arg_mat.matrix[0][3] * matrix.matrix[2][0]) + (arg_mat.matrix[1][3] * matrix.matrix[2][1]) + (arg_mat.matrix[2][3] * matrix.matrix[2][2]) + (arg_mat.matrix[3][3] * matrix.matrix[2][3]));
+        self.matrix[3][0] = ((matrix.matrix[0][0] * arg_mat.matrix[3][0]) + (matrix.matrix[1][0] * arg_mat.matrix[3][1]) + (matrix.matrix[2][0] * arg_mat.matrix[3][2]) + (matrix.matrix[3][0] * arg_mat.matrix[3][3]));
+        self.matrix[3][1] = ((matrix.matrix[0][1] * arg_mat.matrix[3][0]) + (matrix.matrix[1][1] * arg_mat.matrix[3][1]) + (matrix.matrix[2][1] * arg_mat.matrix[3][2]) + (matrix.matrix[3][1] * arg_mat.matrix[3][3]));
+        self.matrix[3][2] = ((matrix.matrix[0][2] * arg_mat.matrix[3][0]) + (matrix.matrix[1][2] * arg_mat.matrix[3][1]) + (matrix.matrix[2][2] * arg_mat.matrix[3][2]) + (matrix.matrix[3][2] * arg_mat.matrix[3][3]));
+        self.matrix[3][3] = ((matrix.matrix[0][3] * arg_mat.matrix[3][0]) + (matrix.matrix[1][3] * arg_mat.matrix[3][1]) + (matrix.matrix[2][3] * arg_mat.matrix[3][2]) + (matrix.matrix[3][3] * arg_mat.matrix[3][3]));
 
-        self.matrix[3][0] = ((arg_mat.matrix[0][0] * matrix.matrix[3][0]) + (arg_mat.matrix[1][0] * matrix.matrix[3][1]) + (arg_mat.matrix[2][0] * matrix.matrix[3][2]) + (arg_mat.matrix[3][0] * matrix.matrix[3][3]));
-        self.matrix[3][1] = ((arg_mat.matrix[0][1] * matrix.matrix[3][0]) + (arg_mat.matrix[1][1] * matrix.matrix[3][1]) + (arg_mat.matrix[2][1] * matrix.matrix[3][2]) + (arg_mat.matrix[3][1] * matrix.matrix[3][3]));
-        self.matrix[3][2] = ((arg_mat.matrix[0][2] * matrix.matrix[3][0]) + (arg_mat.matrix[1][2] * matrix.matrix[3][1]) + (arg_mat.matrix[2][2] * matrix.matrix[3][2]) + (arg_mat.matrix[3][2] * matrix.matrix[3][3]));
-        self.matrix[3][3] = ((arg_mat.matrix[0][3] * matrix.matrix[3][0]) + (arg_mat.matrix[1][3] * matrix.matrix[3][1]) + (arg_mat.matrix[2][3] * matrix.matrix[3][2]) + (arg_mat.matrix[3][3] * matrix.matrix[3][3]));
-        */
         self
     }
 

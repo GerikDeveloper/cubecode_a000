@@ -112,8 +112,8 @@ impl Camera {
     pub fn get_view_mat(&self, proj_mat: &Mat4f) -> Mat4f {
         let mut res = Mat4f::new();
         res.identity()
-            .translate_xyz(-self.pos[0], -self.pos[1], -self.pos[2])
             .rotate(&self.rot)
+            .translate_xyz(-self.pos[0], -self.pos[1], -self.pos[2])
             .mul(&proj_mat);
         res
     }
@@ -121,8 +121,8 @@ impl Camera {
     //TODO TRANSLATE s, x, y, z
     pub fn get_view_mat_to(&self, proj_mat: &Mat4f, view_mat: &mut Mat4f) {
         view_mat.identity()
-            .translate_xyz(-self.pos[0], -self.pos[1], -self.pos[2])
             .rotate(&self.rot)
+            .translate_xyz(-self.pos[0], -self.pos[1], -self.pos[2])
             .mul(&proj_mat);
     }
 }
