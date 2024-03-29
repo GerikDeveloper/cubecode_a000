@@ -6,7 +6,7 @@ use crate::render::block_renderer;
 use crate::render::blocks_loader::{AIR_BLOCK_ID, BlocksLoader, BlockUsingError, UNKNOWN_BLOCK_ID};
 use crate::render::buffer::Buffer;
 use crate::render::shader_program::ShaderProgram;
-use crate::render::types::{Mat4f, Vec3ub, Vertex};
+use crate::render::types::{Mat4f, Vec2ub, Vec3ub, Vertex};
 use crate::render::vertex_array::VertexArray;
 use crate::set_attribute;
 use crate::world::World;
@@ -35,7 +35,7 @@ impl SubChunk {
         }
     }
 
-    pub fn render(&self, world: &World, blocks_loader: &BlocksLoader) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+    pub fn render(&self, world: &World, blocks_loader: &BlocksLoader, subchunk_pos: &Vec3ub) -> Result<(), Vec<Box<dyn std::error::Error>>> {
         let mut errors: Vec<Box<dyn std::error::Error>> = Vec::new();
         if self.is_changed.get() {
             let mut vertices: Vec<Vertex> = Vec::new();
@@ -46,7 +46,7 @@ impl SubChunk {
                 let block_pos_y = (block_pos >> 8) as u8;
                 let block_lid: u16 = self.data.borrow()[block_pos_y as usize][block_pos_z as usize][block_pos_x as usize];
                 //FAILED TO RENDER BLOCK
-                match block_renderer::render_block(world, blocks_loader, block_lid, &mut vertices, &mut indices, &[block_pos_x, block_pos_y, block_pos_z]) {
+                match block_renderer::render_block(world, blocks_loader, block_lid, &mut vertices, &mut indices, subchunk_pos, &[block_pos_x, block_pos_y, block_pos_z]) {
                     Ok(_) => {}
                     Err(error) => {
                         errors.push(error);
@@ -188,10 +188,10 @@ impl Chunk {
         }
     }
 
-    pub fn render(&self, world: &World, blocks_loader: &BlocksLoader) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+    pub fn render(&self, world: &World, blocks_loader: &BlocksLoader, chunk_pos: &Vec2ub) -> Result<(), Vec<Box<dyn std::error::Error>>> {
         let mut errors: Vec<Box<dyn std::error::Error>> = Vec::new();
-        for chunk_pos in 0..16u8 {
-            match self.subchunks[chunk_pos as usize].render(world, blocks_loader) {
+        for subchunk_pos in 0..16u8 {
+            match self.subchunks[subchunk_pos as usize].render(world, blocks_loader, &[subchunk_pos, chunk_pos[0], chunk_pos[1]]) {
                 Ok(_) => {}
                 Err(new_errors) => {
                     for error in new_errors {

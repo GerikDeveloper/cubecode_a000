@@ -76,6 +76,17 @@ fn main() {
             if let Ok(blocks_loader) = get_blocks_loader(shader_program.clone()) {
                 let world_chunk_generator: LayerChunkGenerator = LayerChunkGenerator::from_bottom_layers(&[BEDROCK_BLOCK_ID, DIRT_BLOCK_ID, DIRT_BLOCK_ID, DIRT_BLOCK_ID, GRASS_BLOCK_ID]);
                 if let Ok(world) = World::new(&world_chunk_generator, &blocks_loader) {
+                    if let Some(bedrock) = blocks_loader.blocks_ids.get(&GRASS_BLOCK_ID) {
+                        if let Some(unknown) = blocks_loader.blocks_ids.get(&UNKNOWN_BLOCK_ID) {
+                            world.set_block(&[0, 5, 10], unknown.lid);
+                            world.set_block(&[0, 6, 10], unknown.lid);
+                            world.set_block(&[0, 5, 9], unknown.lid);
+                        } else {
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
                     let mut camera: Camera = Camera::new();
                     let fov: f32 = (60.0f32).to_radians();
                     let z_near: f32 = 0.01;

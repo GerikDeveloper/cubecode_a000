@@ -48,24 +48,24 @@ const DEFAULT_BLOCKS: &[(u16, &str)] = &[
 ];
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct BlockData {
-    pub(crate) id: u16,
-    pub(crate) name: String,
-    pub(crate) mesh: String,
+pub struct BlockData {
+    pub id: u16,
+    pub name: String,
+    pub mesh: String,
     //TODO behavior
 }
 
-pub(crate) struct Block {
-    pub(crate) lid: u16,
-    pub(crate) id: u16,
-    pub(crate) name: String,
-    pub(crate) mesh: Rc<Mesh>,
+pub struct Block {
+    pub lid: u16,
+    pub id: u16,
+    pub name: String,
+    pub mesh: Rc<Mesh>,
 }
 
 pub struct BlocksLoader {
-    pub(crate) loaded_blocks: Vec<Rc<Block>>,
-    pub(crate) blocks_names: HashMap<String, Rc<Block>>,
-    pub(crate) blocks_ids: HashMap<u16, Rc<Block>>,
+    pub loaded_blocks: Vec<Rc<Block>>,
+    pub blocks_names: HashMap<String, Rc<Block>>,
+    pub blocks_ids: HashMap<u16, Rc<Block>>,
     pub meshes_loader: MeshesLoader,
 }
 
