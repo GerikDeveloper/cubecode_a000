@@ -44,6 +44,10 @@ impl Camera {
         self.pos = pos;
     }
 
+    pub fn get_position(&self) -> Vec3f {
+        return self.pos;
+    }
+
     pub fn move_position(&mut self, offset: &Vec3f) {
         if offset[2] != 0.0 {
             self.pos[0] += -(self.rot[1].sin() * offset[2]);

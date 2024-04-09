@@ -144,9 +144,9 @@ impl Chunk {
                 for plane_pos in 0..16u8 {
                     for line_pos in 0..16u8 {
                         for block_pos in 0..16u8 {
-                            let block_data_pos = ((subchunk_pos as u16) << 12) | ((plane_pos as u16) << 8) | ((line_pos as u16) << 4) | (block_pos as u16);
-                            if let Some(b_block_data) = data.get(block_data_pos as usize) {
-                                if let Some(l_block_data) = data.get((block_data_pos as usize) + 1) {
+                            let block_data_pos = ((((subchunk_pos as u16) << 12) | ((plane_pos as u16) << 8) | ((line_pos as u16) << 4) | (block_pos as u16)) as usize) << 1;
+                            if let Some(b_block_data) = data.get(block_data_pos) {
+                                if let Some(l_block_data) = data.get(block_data_pos + 1) {
                                     let block_id = (((*b_block_data as u16) << 8) | (*l_block_data as u16));
                                     if let Some(block) = blocks_loader.blocks_ids.get(&block_id) {
                                         chunk_data[subchunk_pos as usize][plane_pos as usize][line_pos as usize][block_pos as usize] = block.lid;
@@ -185,6 +185,13 @@ impl Chunk {
             })
         } else {
             Err(Box::new(BlockUsingError::BlockNotFoundError()))
+        }
+    }
+
+    pub fn set_data(&self, chunk: Chunk) {
+        for subchunk_pos in 0..16u8 {
+            self.subchunks[subchunk_pos as usize].data.replace_with(|_| *chunk.subchunks[subchunk_pos as usize].data.borrow());
+            self.subchunks[subchunk_pos as usize].is_changed.set(true);
         }
     }
 

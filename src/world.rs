@@ -1,12 +1,23 @@
+use std::fs::File;
+use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use thiserror::Error;
 use crate::chunk::{Chunk, ChunkGenerator};
 use crate::render::blocks_loader::BlocksLoader;
 use crate::render::types::{Vec3ub};
 
+const CHUNK_SIZE: usize = 16 * 16 * 16 * 16 * 2;
+
 #[derive(Error, Debug)]
 pub enum WorldCreationError {
     #[error("Vector sizing error")]
     VectorSizingError(),
+}
+
+#[derive(Error, Debug)]
+pub enum WorldLoadingError {
+    #[error("Invalid chunk size")]
+    InvalidChunkSizeError(),
 }
 
 pub struct World {
@@ -46,6 +57,7 @@ impl World {
         let subchunk_pos: Vec3ub = [pos[0] >> 4, pos[1] >> 4, pos[2] >> 4];
         let block_pos: Vec3ub = [pos[0] & 0x0F, pos[1] & 0x0F, pos[2] & 0x0F];
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].data.borrow_mut()[block_pos[1] as usize][block_pos[2] as usize][block_pos[0] as usize] = block_lid;
+        self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);
     }
 
     pub fn render(&self, blocks_loader: &BlocksLoader) -> Result<(), Vec<Box<dyn std::error::Error>>> {
@@ -79,6 +91,67 @@ impl World {
             }
         }
     }
+
+    pub fn store(&self, blocks_loader: &BlocksLoader, file_name: String) -> Result<(), Box<dyn std::error::Error>> {
+        return match File::create(file_name) {
+            Err(error) => {
+                Err(Box::new(error))
+            }
+            Ok(mut file) => {
+                for line_pos in 0..16u8 {
+                    for chunk_pos in 0..16u8 {
+                        match self.chunks[line_pos as usize][chunk_pos as usize].store(blocks_loader) {
+                            Err(error) => {
+                                return Err(error);
+                            }
+                            Ok(chunk_data) => {
+                                if let Err(error) = file.write_all(chunk_data.as_slice()) {
+                                    return Err(Box::new(error));
+                                }
+                            }
+                        }
+                    }
+                }
+                Ok(())
+            }
+        }
+    }
+
+    pub fn load(&self, blocks_loader: &BlocksLoader, file_name: String) -> Result<(), Box<dyn std::error::Error>> {
+        match File::open(file_name) {
+            Err(error) => {
+                return Err(Box::new(error));
+            }
+            Ok(mut file) => {
+                for line_pos in 0..16u8 {
+                    for chunk_pos in 0..16u8 {
+                        let mut data: Box<[u8; CHUNK_SIZE]> = Box::new([0u8; CHUNK_SIZE]);
+                        match file.read(data.deref_mut()) {
+                            Err(error) => {
+                                return Err(Box::new(error));
+                            }
+                            Ok(size) => {
+                                if size == CHUNK_SIZE {
+                                    match Chunk::load(blocks_loader, data.deref_mut()) {
+                                        Err(error) => {
+                                            return Err(error);
+                                        }
+                                        Ok(chunk) => {
+                                            self.chunks[line_pos as usize][chunk_pos as usize].set_data(chunk);
+                                        }
+                                    }
+                                } else {
+                                    return Err(Box::new(WorldLoadingError::InvalidChunkSizeError()));
+                                }
+                            }
+                        }
+                    }
+                }
+                return Ok(());
+            }
+        }
+    }
+
 }
 
 

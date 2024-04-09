@@ -2,6 +2,7 @@ use std::path::Path;
 use std::ptr;
 use std::rc::Rc;
 use glfw::ffi::KEY_ESCAPE;
+use rand::Rng;
 use cubecode_a000::chunk::{Chunk, LayerChunkGenerator, SubChunk};
 use cubecode_a000::input::keyboard::Keyboard;
 use cubecode_a000::render::blocks_loader::{BEDROCK_BLOCK_ID, BlocksLoader, DIRT_BLOCK_ID, GRASS_BLOCK_ID, UNKNOWN_BLOCK_ID};
@@ -78,6 +79,7 @@ fn main() {
                 if let Ok(world) = World::new(&world_chunk_generator, &blocks_loader) {
                     if let Some(bedrock) = blocks_loader.blocks_ids.get(&GRASS_BLOCK_ID) {
                         if let Some(unknown) = blocks_loader.blocks_ids.get(&UNKNOWN_BLOCK_ID) {
+                            world.load(&blocks_loader, String::from("world/world.data")).unwrap();
                             world.set_block(&[0, 5, 10], unknown.lid);
                             world.set_block(&[0, 6, 10], unknown.lid);
                             world.set_block(&[0, 5, 9], unknown.lid);
@@ -90,7 +92,7 @@ fn main() {
                     let mut camera: Camera = Camera::new();
                     let fov: f32 = (60.0f32).to_radians();
                     let z_near: f32 = 0.01;
-                    let z_far: f32 = 1000.0;
+                    let z_far: f32 = 1024.0;
                     let asp_rat: f32 = (800.0 / 600.0);
                     let mut view_mat = Mat4f::new();
                     let mut proj_mat = Mat4f::new();
@@ -166,6 +168,30 @@ fn main() {
                             }
                             if window.keyboard.get_key_state(glfw::Key::Y) {
                                 move_rot_cam_vec[2] -= 0.5;
+                            }
+
+                            if window.keyboard.get_key_state(glfw::Key::F) {
+                                if let Err(error) = world.store(&blocks_loader, String::from("world/world.data")) {
+                                    println!("Failed to save the world");
+                                } else {
+                                    println!("World has been saved successfully");
+                                }
+                            }
+
+                            if window.keyboard.get_key_state(glfw::Key::G) {
+                                if let Err(error) = world.load(&blocks_loader, String::from("world/world.data")) {
+                                    println!("Failed to load the world");
+                                } else {
+                                    println!("World has been loaded successfully");
+                                }
+                            }
+
+                            if window.keyboard.get_key_state(glfw::Key::Q) {
+                                world.set_block(&[8, 8, 8], rand::thread_rng().gen_range(0..4) as u16);
+                            }
+
+                            if window.keyboard.get_key_state(glfw::Key::M) {
+                                println!("{:?}", camera.get_position());
                             }
 
                             camera.move_position(&move_pos_cam_vec);
