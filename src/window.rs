@@ -15,6 +15,7 @@ pub struct Window {
     pub events: Receiver<(f64, WindowEvent)>,
     pub events_processor: fn(&mut Window),
     pub keyboard: Keyboard,
+    pub asp_rat: f32,
 }
 
 impl Window {
@@ -35,6 +36,7 @@ impl Window {
                 events,
                 events_processor: |wnd| Self::default_events_processor(wnd),
                 keyboard,
+                asp_rat: (width as f32) / (height as f32),
             })
         } else {
             Err(Box::new(WinitError::CreationError()))
@@ -54,6 +56,7 @@ impl Window {
         for (_, event) in glfw::flush_messages(&self.events) {
             match event {
                 WindowEvent::FramebufferSize(width, height) => {
+                    self.asp_rat = (width as f32) / (height as f32);
                     unsafe { gl::Viewport(0, 0, width, height) }
                 }
                 WindowEvent::Key(key, scancode, action, mode) => {

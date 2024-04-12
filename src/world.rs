@@ -58,6 +58,8 @@ impl World {
         let block_pos: Vec3ub = [pos[0] & 0x0F, pos[1] & 0x0F, pos[2] & 0x0F];
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].data.borrow_mut()[block_pos[1] as usize][block_pos[2] as usize][block_pos[0] as usize] = block_lid;
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);
+
+        //TODO set neighboring chunks is changed
     }
 
     pub fn render(&self, blocks_loader: &BlocksLoader) -> Result<(), Vec<Box<dyn std::error::Error>>> {

@@ -93,7 +93,7 @@ fn main() {
                     let fov: f32 = (60.0f32).to_radians();
                     let z_near: f32 = 0.01;
                     let z_far: f32 = 1024.0;
-                    let asp_rat: f32 = (800.0 / 600.0);
+                    let mut asp_rat: f32 = (800.0 / 600.0);
                     let mut view_mat = Mat4f::new();
                     let mut proj_mat = Mat4f::new();
                     proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
@@ -106,6 +106,10 @@ fn main() {
                     while !window.should_close() {
                         window.process_events();
                         window.swap_buffers();
+                        if asp_rat != window.asp_rat {
+                            asp_rat = window.asp_rat;
+                            proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
+                        }
                         camera.get_view_mat_to(&proj_mat, &mut view_mat);
                         unsafe {
                             if let Err(_) = shader_program.set_uniform_mat4f("viewMat", &view_mat) {
