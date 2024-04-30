@@ -12,7 +12,7 @@ use cubecode_a000::render::faces_loader::FacesLoader;
 use cubecode_a000::render::meshes_loader::MeshesLoader;
 use cubecode_a000::render::shader::Shader;
 use cubecode_a000::render::shader_program::ShaderProgram;
-use cubecode_a000::render::types::{Mat4f, Vec3f, Vertex};
+use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, Vertex};
 use cubecode_a000::render::vertex_array::VertexArray;
 use cubecode_a000::set_attribute;
 use cubecode_a000::window::Window;
@@ -172,6 +172,14 @@ fn main() {
                             }
                             if window.keyboard.get_key_state(glfw::Key::Y) {
                                 move_rot_cam_vec[2] -= 0.5;
+                            }
+
+                            if window.keyboard.get_key_state(glfw::Key::R) {
+                                let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                let mut iend: Vec3ub = [0, 0, 0];
+                                world.ray_get(&camera.get_position(), &camera.get_rotation(), 16.0, &mut end, &mut norm, &mut iend);
+                                println!("{}, {}, {}", iend[0], iend[1], iend[2]);
                             }
 
                             if window.keyboard.get_key_state(glfw::Key::F) {
