@@ -1,6 +1,8 @@
 use std::f32::consts;
 use std::f32::consts::{PI, TAU};
-use crate::render::types::{Mat4f, Vec3f};
+use crate::render::types::{Mat4f, Vec3f, Vec4f};
+
+//TODO REWRITE ALL
 
 pub struct Camera {
     pos: Vec3f,
@@ -128,5 +130,10 @@ impl Camera {
             .rotate(&self.rot)
             .translate_xyz(-self.pos[0], -self.pos[1], -self.pos[2])
             .mul(&proj_mat);
+    }
+
+    pub fn get_dir(&self) -> Vec3f {
+        let res: Vec4f = Mat4f::new().identity().rotate(&self.rot).mul_vec4f([0.0f32, 0.0f32, -1.0f32, 1.0f32]);
+        return [res[0], res[1], res[2]];
     }
 }

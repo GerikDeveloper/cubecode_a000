@@ -1,4 +1,3 @@
-use std::arch::aarch64::vmax_f32;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
@@ -82,7 +81,7 @@ impl World {
         let ydist: f32 = {if stepy > 0.0f32 { (iy as f32) + 1.0f32 - pos[1] } else { pos[1] - (iy as f32) }};
         let zdist: f32 = {if stepz > 0.0f32 { (iz as f32) + 1.0f32 - pos[2] } else { pos[2] - (iz as f32) }};
 
-        let mut txmax: f32 = {if tdx < f32::INFINITY { tdx * xdist } else { f32::INFINITY }};
+        let mut txmax: f32 = {if tdx < f32::INFINITY { tdx * xdist } else { f32::INFINITY }}; //smallest positive t such that pos[0] + t * dir[0] is an int
         let mut tymax: f32 = {if tdy < f32::INFINITY { tdy * ydist } else { f32::INFINITY }};
         let mut tzmax: f32 = {if tdz < f32::INFINITY { tdz * zdist } else { f32::INFINITY }};
 

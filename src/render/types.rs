@@ -9,7 +9,7 @@ use thiserror::Error;
 
 pub(crate) type Vec2f = [f32; 2];
 pub type Vec3f = [f32; 3];
-type Vec4f = [f32; 4];
+pub type Vec4f = [f32; 4];
 type Vec2d = [f64; 2];
 type Vec3d = [f64; 3];
 type Vec4d = [f64; 4];
@@ -45,11 +45,103 @@ type TexCoord = Vec2f;
 
 #[derive(Clone)]
 #[repr(C, packed)]
-pub struct Vertex(pub Vec3f, pub TexCoord);
+pub struct ColorizedVertex(pub Vec2f, pub RGBColor);
 
-impl Serialize for Vertex {
+impl Serialize for ColorizedVertex {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        let mut state = serializer.serialize_struct("vertex", 2)?;
+        let mut state = serializer.serialize_struct("colorized_vertex", 2)?;
+        let pos = self.0;
+        let col = self.1;
+        state.serialize_field("pos", &pos)?;
+        state.serialize_field("col", &col)?;
+        state.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for ColorizedVertex {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        enum Field { Pos, Col }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+
+                struct FieldVisitor;
+
+                impl<'de> Visitor<'de> for FieldVisitor {
+                    type Value = Field;
+
+                    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                        formatter.write_str("`pos` or `col`")
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
+                        match v {
+                            "pos" => Ok(Field::Pos),
+                            "col" => Ok(Field::Col),
+                            _ => Err(Error::unknown_field(v, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct VertexVisitor;
+
+        impl<'de> Visitor<'de> for VertexVisitor {
+            type Value = ColorizedVertex;
+
+            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                formatter.write_str("struct ColorizedVertex")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
+                let pos = seq.next_element()?
+                    .ok_or_else(|| Error::invalid_length(0, &self))?;
+                let col = seq.next_element()?
+                    .ok_or_else(|| Error::invalid_length(1, &self))?;
+                Ok(ColorizedVertex(pos, col))
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: MapAccess<'de> {
+                let mut pos = None;
+                let mut col = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Pos => {
+                            if pos.is_some() {
+                                return Err(Error::duplicate_field("pos"));
+                            }
+                            pos = Some(map.next_value()?);
+                        }
+                        Field::Col => {
+                            if col.is_some() {
+                                return Err(Error::duplicate_field("col"));
+                            }
+                            col = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let pos = pos.ok_or_else(|| Error::missing_field("pos"))?;
+                let col = col.ok_or_else(|| Error::missing_field("col"))?;
+                Ok(ColorizedVertex(pos, col))
+            }
+        }
+
+        const FIELDS: &'static [&'static str] = &["pos", "col"];
+
+        deserializer.deserialize_struct("ColorizedVertex", FIELDS, VertexVisitor)
+    }
+}
+#[derive(Clone)]
+#[repr(C, packed)]
+pub struct TexturedVertex(pub Vec3f, pub TexCoord);
+
+impl Serialize for TexturedVertex {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        let mut state = serializer.serialize_struct("textured_vertex", 2)?;
         let pos = self.0;
         let tex = self.1;
         state.serialize_field("pos", &pos)?;
@@ -58,7 +150,7 @@ impl Serialize for Vertex {
     }
 }
 
-impl<'de> Deserialize<'de> for Vertex {
+impl<'de> Deserialize<'de> for TexturedVertex {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         enum Field { Pos, Tex }
 
@@ -89,10 +181,10 @@ impl<'de> Deserialize<'de> for Vertex {
         struct VertexVisitor;
 
         impl<'de> Visitor<'de> for VertexVisitor {
-            type Value = Vertex;
+            type Value = TexturedVertex;
 
             fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-                formatter.write_str("struct Vertex")
+                formatter.write_str("struct TexturedVertex")
             }
 
             fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
@@ -100,7 +192,7 @@ impl<'de> Deserialize<'de> for Vertex {
                     .ok_or_else(|| Error::invalid_length(0, &self))?;
                 let tex = seq.next_element()?
                     .ok_or_else(|| Error::invalid_length(1, &self))?;
-                Ok(Vertex(pos, tex))
+                Ok(TexturedVertex(pos, tex))
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: MapAccess<'de> {
@@ -126,13 +218,13 @@ impl<'de> Deserialize<'de> for Vertex {
 
                 let pos = pos.ok_or_else(|| Error::missing_field("pos"))?;
                 let tex = tex.ok_or_else(|| Error::missing_field("tex"))?;
-                Ok(Vertex(pos, tex))
+                Ok(TexturedVertex(pos, tex))
             }
         }
 
         const FIELDS: &'static [&'static str] = &["pos", "tex"];
 
-        deserializer.deserialize_struct("Vertex", FIELDS, VertexVisitor)
+        deserializer.deserialize_struct("TexturedVertex", FIELDS, VertexVisitor)
     }
 }
 
@@ -521,6 +613,29 @@ impl Mat4f {
         self.matrix[3][3] = ((matrix.matrix[0][3] * arg_mat.matrix[3][0]) + (matrix.matrix[1][3] * arg_mat.matrix[3][1]) + (matrix.matrix[2][3] * arg_mat.matrix[3][2]) + (matrix.matrix[3][3] * arg_mat.matrix[3][3]));
 
         self
+    }
+
+    pub fn mul_vec4f(&mut self, vec: Vec4f) -> Vec4f {
+        //M * V (not V * M)
+        /*
+        V = x, y, z, w
+        M * V = (x*a + y*b + z*c + w*d,
+                 x*e + y*f + z*g + w*h,
+                 x*i + y*j + z*k + w*l,
+                 x*m + y*n + z*o + w*p)
+
+         V * M = (x*a + y*e + z*i + w*m,
+                  x*b + y*f + z*j + w*n,
+                  x*c + y*g + z*k + w*o,
+                  x*d + y*h + z*l + w*p)
+         */
+
+        return [
+            ((self.matrix[0][0] * vec[0]) + (self.matrix[0][1] * vec[1]) + (self.matrix[0][2] * vec[2]) + (self.matrix[0][3] * vec[3])),
+            ((self.matrix[1][0] * vec[0]) + (self.matrix[1][1] * vec[1]) + (self.matrix[1][2] * vec[2]) + (self.matrix[1][3] * vec[3])),
+            ((self.matrix[2][0] * vec[0]) + (self.matrix[2][1] * vec[1]) + (self.matrix[2][2] * vec[2]) + (self.matrix[2][3] * vec[3])),
+            ((self.matrix[3][0] * vec[0]) + (self.matrix[3][1] * vec[1]) + (self.matrix[3][2] * vec[2]) + (self.matrix[3][3] * vec[3])),
+        ];
     }
 
     pub fn add(&mut self, matrix: &Mat4f) -> &mut Self {

@@ -9,10 +9,11 @@ use cubecode_a000::render::blocks_loader::{BEDROCK_BLOCK_ID, BlocksLoader, DIRT_
 use cubecode_a000::render::buffer::Buffer;
 use cubecode_a000::render::camera::Camera;
 use cubecode_a000::render::faces_loader::FacesLoader;
+use cubecode_a000::render::gui_renderer::GuiRenderer;
 use cubecode_a000::render::meshes_loader::MeshesLoader;
 use cubecode_a000::render::shader::Shader;
 use cubecode_a000::render::shader_program::ShaderProgram;
-use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, Vertex};
+use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, TexturedVertex};
 use cubecode_a000::render::vertex_array::VertexArray;
 use cubecode_a000::set_attribute;
 use cubecode_a000::window::Window;
@@ -77,146 +78,157 @@ fn main() {
             if let Ok(blocks_loader) = get_blocks_loader(shader_program.clone()) {
                 let world_chunk_generator: LayerChunkGenerator = LayerChunkGenerator::from_bottom_layers(&[BEDROCK_BLOCK_ID, DIRT_BLOCK_ID, DIRT_BLOCK_ID, DIRT_BLOCK_ID, GRASS_BLOCK_ID]);
                 if let Ok(world) = World::new(&world_chunk_generator, &blocks_loader) {
-                    if let Some(bedrock) = blocks_loader.blocks_ids.get(&GRASS_BLOCK_ID) {
-                        if let Some(unknown) = blocks_loader.blocks_ids.get(&UNKNOWN_BLOCK_ID) {
-                            world.load(&blocks_loader, String::from("world/world.data")).unwrap();
-                            world.set_block(&[0, 5, 10], unknown.lid);
-                            world.set_block(&[0, 6, 10], unknown.lid);
-                            world.set_block(&[0, 5, 9], unknown.lid);
+                    if let Ok(gui_renderer) = GuiRenderer::init_gui() {
+                        if let Some(bedrock) = blocks_loader.blocks_ids.get(&GRASS_BLOCK_ID) {
+                            if let Some(unknown) = blocks_loader.blocks_ids.get(&UNKNOWN_BLOCK_ID) {
+                                world.load(&blocks_loader, String::from("world/world.data")).unwrap();
+                                world.set_block(&[0, 5, 10], unknown.lid);
+                                world.set_block(&[0, 6, 10], unknown.lid);
+                                world.set_block(&[0, 5, 9], unknown.lid);
+                            } else {
+                                return;
+                            }
                         } else {
                             return;
                         }
+                        let mut camera: Camera = Camera::new();
+                        let fov: f32 = (60.0f32).to_radians();
+                        let z_near: f32 = 0.01;
+                        let z_far: f32 = 1024.0;
+                        let mut asp_rat: f32 = (800.0 / 600.0);
+                        let mut view_mat = Mat4f::new();
+                        let mut proj_mat = Mat4f::new();
+                        proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
+                        gui_renderer.set_asp_rat(asp_rat);
+
+                        unsafe {
+                            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+                            gl::Enable(gl::BLEND);
+                            gl::Enable(gl::DEPTH_TEST);
+                        }
+                        while !window.should_close() {
+                            window.process_events();
+                            window.swap_buffers();
+                            if asp_rat != window.asp_rat {
+                                asp_rat = window.asp_rat;
+                                proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
+                                gui_renderer.set_asp_rat(asp_rat);
+                            }
+                            camera.get_view_mat_to(&proj_mat, &mut view_mat);
+                            unsafe {
+                                if let Err(_) = shader_program.set_uniform_mat4f("viewMat", &view_mat) {
+                                    println!("Failed to load view matrix");
+                                }
+                            }
+                            unsafe {
+                                gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+                                gl::ClearColor(0.2, 0.3, 0.3, 1.0);
+                            }
+                            {
+                                let mut move_pos_cam_vec: Vec3f = [0.0, 0.0, 0.0];
+                                let mut move_rot_cam_vec: Vec3f = [0.0, 0.0, 0.0];
+
+                                if window.keyboard.get_key_state(glfw::Key::Escape) {
+                                    window.close();
+                                }
+
+
+                                //TODO ROTSPEED MOVESPEED
+                                if window.keyboard.get_key_state(glfw::Key::D) {
+                                    move_pos_cam_vec[0] += 0.05;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::A) {
+                                    move_pos_cam_vec[0] -= 0.05;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Space) {
+                                    move_pos_cam_vec[1] += 0.05;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::LeftShift) || window.keyboard.get_key_state(glfw::Key::RightShift) {
+                                    move_pos_cam_vec[1] -= 0.05;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::S) {
+                                    move_pos_cam_vec[2] += 0.05;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::W) {
+                                    move_pos_cam_vec[2] -= 0.05;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Down) {
+                                    //let cur_rot_x: f32 = camera.get_rotation_x();
+                                    move_rot_cam_vec[0] += 0.5;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::Up) {
+                                    //let cur_rot_x: f32 = camera.get_rotation_x();
+                                    move_rot_cam_vec[0] -= 0.5;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Right) {
+                                    move_rot_cam_vec[1] += 0.5;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::Left) {
+                                    move_rot_cam_vec[1] -= 0.5;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::H) {
+                                    move_rot_cam_vec[2] += 0.5;
+                                }
+                                if window.keyboard.get_key_state(glfw::Key::Y) {
+                                    move_rot_cam_vec[2] -= 0.5;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::R) {
+                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut iend: Vec3ub = [0, 0, 0];
+                                    world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
+                                    println!("{}, {}, {}", iend[0], iend[1], iend[2]);
+                                    println!("{:?}", camera.get_dir());
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::F) {
+                                    if let Err(error) = world.store(&blocks_loader, String::from("world/world.data")) {
+                                        println!("Failed to save the world");
+                                    } else {
+                                        println!("World has been saved successfully");
+                                    }
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::G) {
+                                    if let Err(error) = world.load(&blocks_loader, String::from("world/world.data")) {
+                                        println!("Failed to load the world");
+                                    } else {
+                                        println!("World has been loaded successfully");
+                                    }
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Q) {
+                                    world.set_block(&[8, 8, 8], rand::thread_rng().gen_range(0..4) as u16);
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::M) {
+                                    println!("{:?}", camera.get_position());
+                                }
+
+                                camera.move_position(&move_pos_cam_vec);
+                                camera.move_rotation(&move_rot_cam_vec);
+                            }
+                            if let Err(_) = world.render(&blocks_loader) {
+                                println!("Failed to render world");
+                            }
+                            world.draw(&blocks_loader);
+                            if let Err(_) = gui_renderer.render() {
+                                println!("Failed to render GUI");
+                            }
+                            gui_renderer.draw();
+                        }
+                        unsafe {
+                            gl::Disable(gl::BLEND);
+                            gl::Disable(gl::DEPTH_TEST);
+                        }
                     } else {
-                        return;
-                    }
-                    let mut camera: Camera = Camera::new();
-                    let fov: f32 = (60.0f32).to_radians();
-                    let z_near: f32 = 0.01;
-                    let z_far: f32 = 1024.0;
-                    let mut asp_rat: f32 = (800.0 / 600.0);
-                    let mut view_mat = Mat4f::new();
-                    let mut proj_mat = Mat4f::new();
-                    proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
-
-                    unsafe {
-                        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-                        gl::Enable(gl::BLEND);
-                        gl::Enable(gl::DEPTH_TEST);
-                    }
-                    while !window.should_close() {
-                        window.process_events();
-                        window.swap_buffers();
-                        if asp_rat != window.asp_rat {
-                            asp_rat = window.asp_rat;
-                            proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
-                        }
-                        camera.get_view_mat_to(&proj_mat, &mut view_mat);
-                        unsafe {
-                            if let Err(_) = shader_program.set_uniform_mat4f("viewMat", &view_mat) {
-                                println!("Failed to load view matrix");
-                            }
-                        }
-                        unsafe {
-                            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-                            gl::ClearColor(0.2, 0.3, 0.3, 1.0);
-                        }
-                        {
-                            let mut move_pos_cam_vec: Vec3f = [0.0, 0.0, 0.0];
-                            let mut move_rot_cam_vec: Vec3f = [0.0, 0.0, 0.0];
-
-                            if window.keyboard.get_key_state(glfw::Key::Escape) {
-                                window.close();
-                            }
-
-
-                            //TODO ROTSPEED MOVESPEED
-                            if window.keyboard.get_key_state(glfw::Key::D) {
-                                move_pos_cam_vec[0] += 0.05;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::A) {
-                                move_pos_cam_vec[0] -= 0.05;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::Space) {
-                                move_pos_cam_vec[1] += 0.05;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::LeftShift) || window.keyboard.get_key_state(glfw::Key::RightShift) {
-                                move_pos_cam_vec[1] -= 0.05;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::S) {
-                                move_pos_cam_vec[2] += 0.05;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::W) {
-                                move_pos_cam_vec[2] -= 0.05;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::Down) {
-                                //let cur_rot_x: f32 = camera.get_rotation_x();
-                                move_rot_cam_vec[0] += 0.5;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::Up) {
-                                //let cur_rot_x: f32 = camera.get_rotation_x();
-                                move_rot_cam_vec[0] -= 0.5;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::Right) {
-                                move_rot_cam_vec[1] += 0.5;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::Left) {
-                                move_rot_cam_vec[1] -= 0.5;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::H) {
-                                move_rot_cam_vec[2] += 0.5;
-                            }
-                            if window.keyboard.get_key_state(glfw::Key::Y) {
-                                move_rot_cam_vec[2] -= 0.5;
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::R) {
-                                let mut end: Vec3f = [0.0, 0.0, 0.0];
-                                let mut norm: Vec3f = [0.0, 0.0, 0.0];
-                                let mut iend: Vec3ub = [0, 0, 0];
-                                world.ray_get(&camera.get_position(), &camera.get_rotation(), 16.0, &mut end, &mut norm, &mut iend);
-                                println!("{}, {}, {}", iend[0], iend[1], iend[2]);
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::F) {
-                                if let Err(error) = world.store(&blocks_loader, String::from("world/world.data")) {
-                                    println!("Failed to save the world");
-                                } else {
-                                    println!("World has been saved successfully");
-                                }
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::G) {
-                                if let Err(error) = world.load(&blocks_loader, String::from("world/world.data")) {
-                                    println!("Failed to load the world");
-                                } else {
-                                    println!("World has been loaded successfully");
-                                }
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::Q) {
-                                world.set_block(&[8, 8, 8], rand::thread_rng().gen_range(0..4) as u16);
-                            }
-
-                            if window.keyboard.get_key_state(glfw::Key::M) {
-                                println!("{:?}", camera.get_position());
-                            }
-
-                            camera.move_position(&move_pos_cam_vec);
-                            camera.move_rotation(&move_rot_cam_vec);
-                        }
-                        if let Err(_) = world.render(&blocks_loader) {
-                            println!("Failed to render world");
-                        }
-                        world.draw(&blocks_loader);
-                    }
-                    unsafe {
-                        gl::Disable(gl::BLEND);
-                        gl::Disable(gl::DEPTH_TEST);
+                        println!("Failed to initialize GUI");
                     }
                 } else {
                     println!("Failed to create world");

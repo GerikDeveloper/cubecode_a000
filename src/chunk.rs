@@ -6,7 +6,7 @@ use crate::render::block_renderer;
 use crate::render::blocks_loader::{AIR_BLOCK_ID, BlocksLoader, BlockUsingError, UNKNOWN_BLOCK_ID};
 use crate::render::buffer::Buffer;
 use crate::render::shader_program::ShaderProgram;
-use crate::render::types::{Mat4f, Vec2ub, Vec3ub, Vertex};
+use crate::render::types::{Mat4f, Vec2ub, Vec3ub, TexturedVertex};
 use crate::render::vertex_array::VertexArray;
 use crate::set_attribute;
 use crate::world::World;
@@ -38,7 +38,7 @@ impl SubChunk {
     pub fn render(&self, world: &World, blocks_loader: &BlocksLoader, subchunk_pos: &Vec3ub) -> Result<(), Vec<Box<dyn std::error::Error>>> {
         let mut errors: Vec<Box<dyn std::error::Error>> = Vec::new();
         if self.is_changed.get() {
-            let mut vertices: Vec<Vertex> = Vec::new();
+            let mut vertices: Vec<TexturedVertex> = Vec::new();
             let mut indices: Vec<i32> = Vec::new();
             for block_pos in 0..0x1000 {
                 let block_pos_x = (block_pos & 0x0F) as u8;
@@ -64,12 +64,12 @@ impl SubChunk {
                 match blocks_loader.meshes_loader.faces_loader.shader_program.get_attrib_location("pos") {
                     Ok(pos_attrib) => {
 
-                        set_attribute!(self.vert_array.borrow(), pos_attrib, Vertex::0);
+                        set_attribute!(self.vert_array.borrow(), pos_attrib, TexturedVertex::0);
 
                         match blocks_loader.meshes_loader.faces_loader.shader_program.get_attrib_location("tex") {
                             Ok(tex_attrib) => {
 
-                                set_attribute!(self.vert_array.borrow(), tex_attrib, Vertex::1);
+                                set_attribute!(self.vert_array.borrow(), tex_attrib, TexturedVertex::1);
 
                                 self.ind_buf.replace(Buffer::new(gl::ELEMENT_ARRAY_BUFFER));
                                 self.ind_buf.borrow().set_data(indices.as_slice(), gl::STATIC_DRAW);

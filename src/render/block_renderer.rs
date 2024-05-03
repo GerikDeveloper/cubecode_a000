@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::render::blocks_loader::{Block, BlocksLoader, BlockUsingError, GRASS_BLOCK_ID, UNKNOWN_BLOCK_ID};
 use crate::render::faces_loader::Face;
 use crate::render::meshes_loader::Mesh::{Cube, Custom};
-use crate::render::types::{Vec3b, Vec3s, Vec3ub, Vertex};
+use crate::render::types::{Vec3b, Vec3s, Vec3ub, TexturedVertex};
 use crate::world::World;
 
 //TODO glEnable(CULL_FACE)
@@ -28,11 +28,11 @@ fn get_neighbor_block(world: &World, pos: &Vec3ub, offset: &Vec3b) -> Option<u16
     return None;
 }
 
-fn render_face(face: &Rc<Face>, vertices: &mut Vec<Vertex>, indices: &mut Vec<i32>, pos: &Vec3ub) {
+fn render_face(face: &Rc<Face>, vertices: &mut Vec<TexturedVertex>, indices: &mut Vec<i32>, pos: &Vec3ub) {
     if face.indices.len() != 0 {
         let ind_offset = (vertices.len() as i32);
         for vertex in &face.vertices {
-            let rend_vert: Vertex = Vertex([vertex.0[0] + (pos[0] as f32), vertex.0[1] + (pos[1] as f32), vertex.0[2] + (pos[2] as f32)], vertex.1);
+            let rend_vert: TexturedVertex = TexturedVertex([vertex.0[0] + (pos[0] as f32), vertex.0[1] + (pos[1] as f32), vertex.0[2] + (pos[2] as f32)], vertex.1);
             vertices.push(rend_vert);
         }
         for ind in &face.indices {
@@ -41,7 +41,7 @@ fn render_face(face: &Rc<Face>, vertices: &mut Vec<Vertex>, indices: &mut Vec<i3
     }
 }
 
-pub(crate) fn render_block(world: &World, blocks_loader: &BlocksLoader, block_lid: u16, vertices: &mut Vec<Vertex>, indices: &mut Vec<i32>, subchunk_pos: &Vec3ub, pos: &Vec3ub) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn render_block(world: &World, blocks_loader: &BlocksLoader, block_lid: u16, vertices: &mut Vec<TexturedVertex>, indices: &mut Vec<i32>, subchunk_pos: &Vec3ub, pos: &Vec3ub) -> Result<(), Box<dyn std::error::Error>> {
     let block: &Rc<Block> = match blocks_loader.loaded_blocks.get(block_lid as usize) {
         None => {
             if let Some(block) = blocks_loader.blocks_ids.get(&UNKNOWN_BLOCK_ID) {

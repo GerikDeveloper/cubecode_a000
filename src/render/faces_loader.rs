@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::rc::Rc;
 use crate::render::texture::Texture;
-use crate::render::types::{Vertex};
+use crate::render::types::{TexturedVertex};
 use serde::{Serialize, Deserialize};
 use thiserror::Error;
 use crate::render::shader_program::ShaderProgram;
@@ -25,7 +25,7 @@ pub enum FacesLoadingError {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Face {
     pub(crate) name: String,
-    pub(crate) vertices: Vec<Vertex>,
+    pub(crate) vertices: Vec<TexturedVertex>,
     pub(crate) indices: Vec<i32>,
 }
 
