@@ -5,7 +5,7 @@ use glfw::ffi::KEY_ESCAPE;
 use rand::Rng;
 use cubecode_a000::chunk::{Chunk, LayerChunkGenerator, SubChunk};
 use cubecode_a000::input::keyboard::Keyboard;
-use cubecode_a000::render::blocks_loader::{BEDROCK_BLOCK_ID, BlocksLoader, DIRT_BLOCK_ID, GRASS_BLOCK_ID, UNKNOWN_BLOCK_ID};
+use cubecode_a000::render::blocks_loader::{AIR_BLOCK_ID, BEDROCK_BLOCK_ID, BlocksLoader, DIRT_BLOCK_ID, GRASS_BLOCK_ID, UNKNOWN_BLOCK_ID};
 use cubecode_a000::render::buffer::Buffer;
 use cubecode_a000::render::camera::Camera;
 use cubecode_a000::render::faces_loader::FacesLoader;
@@ -13,7 +13,7 @@ use cubecode_a000::render::gui_renderer::GuiRenderer;
 use cubecode_a000::render::meshes_loader::MeshesLoader;
 use cubecode_a000::render::shader::Shader;
 use cubecode_a000::render::shader_program::ShaderProgram;
-use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, TexturedVertex};
+use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, TexturedVertex, Vec3s};
 use cubecode_a000::render::vertex_array::VertexArray;
 use cubecode_a000::set_attribute;
 use cubecode_a000::window::Window;
@@ -178,14 +178,33 @@ fn main() {
                                     move_rot_cam_vec[2] -= 0.5;
                                 }
 
-                                if window.keyboard.get_key_state(glfw::Key::R) {
+                                if window.keyboard.get_key_state(glfw::Key::E) {
                                     let mut end: Vec3f = [0.0, 0.0, 0.0];
                                     let mut norm: Vec3f = [0.0, 0.0, 0.0];
                                     let mut iend: Vec3ub = [0, 0, 0];
                                     world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
-                                    println!("{}, {}, {}", iend[0], iend[1], iend[2]);
-                                    println!("{:?}", camera.get_dir());
+                                    world.set_block(&iend, AIR_BLOCK_ID);
                                 }
+
+                                if window.keyboard.get_key_state(glfw::Key::P) {
+                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut iend: Vec3ub = [0, 0, 0];
+                                    world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
+                                    if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
+                                        if block != AIR_BLOCK_ID {
+                                            let res: Vec3s = [(iend[0] as i16 + norm[0] as i16), (iend[1] as i16 + norm[1] as i16), (iend[2] as i16 + norm[2] as i16)];
+                                            if res[0] >= 0x00 && res[0] <= 0xFF &&
+                                                res[1] >= 0x00 && res[1] <= 0xFF &&
+                                                res[2] >= 0x00 && res[2] <= 0xFF {
+                                                if world.get_block(&[res[0] as u8, res[1] as u8, res[2] as u8]) == AIR_BLOCK_ID {
+                                                    world.set_block(&[res[0] as u8, res[1] as u8, res[2] as u8], UNKNOWN_BLOCK_ID);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
 
                                 if window.keyboard.get_key_state(glfw::Key::F) {
                                     if let Err(error) = world.store(&blocks_loader, String::from("world/world.data")) {

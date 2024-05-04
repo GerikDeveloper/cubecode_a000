@@ -59,7 +59,13 @@ impl World {
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].data.borrow_mut()[block_pos[1] as usize][block_pos[2] as usize][block_pos[0] as usize] = block_lid;
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);
 
-        //TODO set neighboring chunks is changed
+        if block_pos[0] == 0x0F && subchunk_pos[0] < 0x0F {self.chunks[(subchunk_pos[0] + 1) as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);}
+        if block_pos[1] == 0x0F && subchunk_pos[1] < 0x0F {self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[(subchunk_pos[1] + 1) as usize].is_changed.set(true);}
+        if block_pos[2] == 0x0F && subchunk_pos[2] < 0x0F {self.chunks[subchunk_pos[0] as usize][(subchunk_pos[2] + 1) as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);}
+
+        if block_pos[0] == 0x00 && subchunk_pos[0] > 0x00 {self.chunks[(subchunk_pos[0] - 1) as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);}
+        if block_pos[1] == 0x00 && subchunk_pos[1] > 0x00 {self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[(subchunk_pos[1] - 1) as usize].is_changed.set(true);}
+        if block_pos[2] == 0x00 && subchunk_pos[2] > 0x00 {self.chunks[subchunk_pos[0] as usize][(subchunk_pos[2] - 1) as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);}
     }
 
     pub fn ray_get(&self, pos: &Vec3f, dir: &Vec3f, max_dist: f32, end: &mut Vec3f, norm: &mut Vec3f, iend: &mut Vec3ub) -> Option<u16> {
@@ -73,6 +79,9 @@ impl World {
         let stepy: f32 = {if dir[1] > 0.0f32 { 1.0 } else { -1.0 }};
         let stepz: f32 = {if dir[2] > 0.0f32 { 1.0 } else { -1.0 }};
 
+        /*
+        indicates how far along the ray we must move (in units of t) for the horizontal component of such a movement to equal the width of a voxel.
+         */
         let tdx: f32 = {if dir[0] == 0.0f32 { f32::INFINITY } else { f32::abs(1.0f32 / dir[0]) }};
         let tdy: f32 = {if dir[1] == 0.0f32 { f32::INFINITY } else { f32::abs(1.0f32 / dir[1]) }};
         let tdz: f32 = {if dir[2] == 0.0f32 { f32::INFINITY } else { f32::abs(1.0f32 / dir[2]) }};
@@ -81,6 +90,10 @@ impl World {
         let ydist: f32 = {if stepy > 0.0f32 { (iy as f32) + 1.0f32 - pos[1] } else { pos[1] - (iy as f32) }};
         let zdist: f32 = {if stepz > 0.0f32 { (iz as f32) + 1.0f32 - pos[2] } else { pos[2] - (iz as f32) }};
 
+
+        /*
+        we determine the value of t at which the ray crosses the first vertical voxel boundary and store it in variable tMaxX.
+         */
         let mut txmax: f32 = {if tdx < f32::INFINITY { tdx * xdist } else { f32::INFINITY }}; //smallest positive t such that pos[0] + t * dir[0] is an int
         let mut tymax: f32 = {if tdy < f32::INFINITY { tdy * ydist } else { f32::INFINITY }};
         let mut tzmax: f32 = {if tdz < f32::INFINITY { tdz * zdist } else { f32::INFINITY }};
@@ -92,54 +105,67 @@ impl World {
                 iy <= 0xFF && iy >= 0x00 &&
                 iz <= 0xFF && iz >= 0x00 {
                 let block = self.get_block(&[(ix as u8), (iy as u8), (iz as u8)]);
-                if block == AIR_BLOCK_ID {
-                    if txmax < tymax {
-                        if txmax < tzmax {
-                            ix += stepx as i32;
-                            t = txmax;
-                            txmax += tdx;
-                            stepind = 0;
-                        } else {
-                            iz += stepz as i32;
-                            t = tzmax;
-                            tzmax += tdz;
-                            stepind = 2;
-                        }
+                if block != AIR_BLOCK_ID {
+                    end[0] = pos[0] + t * dir[0];
+                    end[1] = pos[1] + t * dir[1];
+                    end[2] = pos[2] + t * dir[2];
+
+                    iend[0] = ix as u8;
+                    iend[1] = iy as u8;
+                    iend[2] = iz as u8;
+
+                    norm[0] = 0.0f32;
+                    norm[1] = 0.0f32;
+                    norm[2] = 0.0f32;
+                    match stepind {
+                        0 => norm[0] = -stepx,
+                        1 => norm[1] = -stepy,
+                        2 => norm[2] = -stepz,
+                        _ => {}
+                    }
+                    return Some(block);
+                }
+                if txmax < tymax {
+                    if txmax < tzmax {
+                        ix += stepx as i32;
+                        t = txmax;
+                        txmax += tdx;
+                        stepind = 0;
                     } else {
-                        if tymax < tzmax {
-                            iy += stepy as i32;
-                            t = tymax;
-                            tymax = tdy;
-                            stepind = 1;
-                        } else {
-                            iz += stepz as i32;
-                            t = tzmax;
-                            tzmax += tdz;
-                            stepind = 2;
-                        }
+                        iz += stepz as i32;
+                        t = tzmax;
+                        tzmax += tdz;
+                        stepind = 2;
                     }
                 } else {
-                    return Some(block);
+                    if tymax < tzmax {
+                        iy += stepy as i32;
+                        t = tymax;
+                        tymax += tdy;
+                        stepind = 1;
+                    } else {
+                        iz += stepz as i32;
+                        t = tzmax;
+                        tzmax += tdz;
+                        stepind = 2;
+                    }
                 }
             } else {
                 break;
             }
         }
-        end[0] = pos[0] + (t * dir[0]);
-        end[1] = pos[1] + (t * dir[1]);
-        end[2] = pos[2] + (t * dir[2]);
 
         iend[0] = ix as u8;
         iend[1] = iy as u8;
         iend[2] = iz as u8;
 
+        end[0] = pos[0] + (t * dir[0]);
+        end[1] = pos[1] + (t * dir[1]);
+        end[2] = pos[2] + (t * dir[2]);
+
         norm[0] = 0.0f32;
         norm[1] = 0.0f32;
         norm[2] = 0.0f32;
-
-        if stepind == 0 {norm[0] = -stepx;}
-        if stepind == 1 {norm[1] = -stepy;}
-        if stepind == 2 {norm[2] = -stepz;}
         return None;
     }
 
