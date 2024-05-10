@@ -54,7 +54,7 @@ pub(crate) struct CustomMesh {
     pub(crate) faces: Vec<Rc<Face>>,
 }
 
-pub(crate) enum Mesh {
+pub enum Mesh {
     Cube(CubeMesh),
     Custom(CustomMesh),
 }

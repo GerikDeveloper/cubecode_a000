@@ -38,7 +38,8 @@ type Vec2s = [i16; 2];
 pub type Vec3s = [i16; 3];
 type Vec4s = [i16; 4];
 type RGBColor = [f32; 3];
-type ARGBColor = [f32; 4];
+type RGBAColor = [f32; 4];
+pub type RGBSColor = [f32; 4];
 
 type TexCoord = Vec2f;
 
@@ -137,9 +138,9 @@ impl<'de> Deserialize<'de> for ColorizedVertex {
 }
 #[derive(Clone)]
 #[repr(C, packed)]
-pub struct TexturedVertex(pub Vec3f, pub TexCoord);
+pub struct LightedTexVertex(pub Vec3f, pub TexCoord, pub RGBSColor);
 
-impl Serialize for TexturedVertex {
+impl Serialize for LightedTexVertex {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         let mut state = serializer.serialize_struct("textured_vertex", 2)?;
         let pos = self.0;
@@ -150,7 +151,7 @@ impl Serialize for TexturedVertex {
     }
 }
 
-impl<'de> Deserialize<'de> for TexturedVertex {
+impl<'de> Deserialize<'de> for LightedTexVertex {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         enum Field { Pos, Tex }
 
@@ -181,10 +182,10 @@ impl<'de> Deserialize<'de> for TexturedVertex {
         struct VertexVisitor;
 
         impl<'de> Visitor<'de> for VertexVisitor {
-            type Value = TexturedVertex;
+            type Value = LightedTexVertex;
 
             fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-                formatter.write_str("struct TexturedVertex")
+                formatter.write_str("struct LightedTexVertex")
             }
 
             fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
@@ -192,7 +193,7 @@ impl<'de> Deserialize<'de> for TexturedVertex {
                     .ok_or_else(|| Error::invalid_length(0, &self))?;
                 let tex = seq.next_element()?
                     .ok_or_else(|| Error::invalid_length(1, &self))?;
-                Ok(TexturedVertex(pos, tex))
+                Ok(LightedTexVertex(pos, tex, [0.0f32, 0.0f32, 0.0f32, 0.0f32]))
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: MapAccess<'de> {
@@ -218,13 +219,13 @@ impl<'de> Deserialize<'de> for TexturedVertex {
 
                 let pos = pos.ok_or_else(|| Error::missing_field("pos"))?;
                 let tex = tex.ok_or_else(|| Error::missing_field("tex"))?;
-                Ok(TexturedVertex(pos, tex))
+                Ok(LightedTexVertex(pos, tex, [0.0f32, 0.0f32, 0.0f32, 0.0f32]))
             }
         }
 
         const FIELDS: &'static [&'static str] = &["pos", "tex"];
 
-        deserializer.deserialize_struct("TexturedVertex", FIELDS, VertexVisitor)
+        deserializer.deserialize_struct("LightedTexVertex", FIELDS, VertexVisitor)
     }
 }
 

@@ -103,7 +103,7 @@ impl World {
                 ipos[1] <= 0xFF && ipos[1] >= 0x00 &&
                 ipos[2] <= 0xFF && ipos[2] >= 0x00 {
                 let block = self.get_block(&[(ipos[0] as u8), (ipos[1] as u8), (ipos[2] as u8)]);
-                if block != AIR_BLOCK_ID {
+                if block != AIR_BLOCK_ID { //TODO REWRITE for not cube blocks
                     end[0] = pos[0] + pdist * dir[0];
                     end[1] = pos[1] + pdist * dir[1];
                     end[2] = pos[2] + pdist * dir[2];
@@ -165,6 +165,19 @@ impl World {
         norm[1] = 0.0f32;
         norm[2] = 0.0f32;
         return None;
+    }
+
+    pub fn get_light_level(&self, pos: &Vec3ub, channel: u8) -> u8 {
+        let subchunk_pos: Vec3ub = [pos[0] >> 4, pos[1] >> 4, pos[2] >> 4];
+        let block_pos: Vec3ub = [pos[0] & 0x0F, pos[1] & 0x0F, pos[2] & 0x0F];
+        return self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].light_map.borrow().get(&block_pos, channel);
+    }
+
+    pub fn set_light_level(&self, pos: &Vec3ub, channel: u8, level: u8) {
+        let subchunk_pos: Vec3ub = [pos[0] >> 4, pos[1] >> 4, pos[2] >> 4];
+        let block_pos: Vec3ub = [pos[0] & 0x0F, pos[1] & 0x0F, pos[2] & 0x0F];
+        self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].light_map.borrow().set(&block_pos, channel, level);
+        self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].is_changed.set(true);
     }
 
     pub fn render(&self, blocks_loader: &BlocksLoader) -> Result<(), Vec<Box<dyn std::error::Error>>> {

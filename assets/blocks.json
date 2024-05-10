@@ -2,26 +2,41 @@
 	{
 		"id": 0,
 		"name": "air",
-		"mesh": "air_block"
+		"mesh": "air_block",
+		"light_r": 0,
+		"light_g": 0,
+		"light_b": 0
 	},
 	{
 		"id": 1,
 		"name": "unknown",
-		"mesh": "unknown_block"
+		"mesh": "unknown_block",
+		"light_r": 0,
+		"light_g": 0,
+		"light_b": 0
 	},
 	{
 		"id": 2,
 		"name": "dirt",
-		"mesh": "dirt_block"
+		"mesh": "dirt_block",
+		"light_r": 0,
+		"light_g": 0,
+		"light_b": 0
 	},
 	{
 		"id": 3,
 		"name": "grass",
-		"mesh": "grass_block"
+		"mesh": "grass_block",
+		"light_r": 0,
+		"light_g": 0,
+		"light_b": 0
 	},
 	{
 		"id": 4,
 		"name": "bedrock",
-		"mesh": "bedrock_block"
+		"mesh": "bedrock_block",
+		"light_r": 0,
+		"light_g": 0,
+		"light_b": 0
 	}
 ]

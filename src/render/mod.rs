@@ -10,3 +10,4 @@ pub mod meshes_loader;
 pub mod blocks_loader;
 pub mod block_renderer;
 pub mod gui_renderer;
+pub mod light;

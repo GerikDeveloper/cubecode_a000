@@ -5,7 +5,7 @@ use crate::render::block_renderer;
 use crate::render::buffer::Buffer;
 use crate::render::shader::Shader;
 use crate::render::shader_program::ShaderProgram;
-use crate::render::types::{ColorizedVertex, ShaderError, TexturedVertex, Vec2f};
+use crate::render::types::{ColorizedVertex, ShaderError, LightedTexVertex, Vec2f};
 use crate::render::vertex_array::VertexArray;
 use crate::set_attribute;
 

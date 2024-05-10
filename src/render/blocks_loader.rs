@@ -9,8 +9,6 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use crate::render::meshes_loader::{Mesh, MeshesLoader};
 
-//TODO WITHOUT HASHMAPS
-//TODO BLOCKS ARRAY
 
 #[derive(Error, Debug)]
 pub enum BlocksLoadingError {
@@ -51,14 +49,22 @@ const DEFAULT_BLOCKS: &[(u16, &str)] = &[
 pub struct BlockData {
     pub id: u16,
     pub name: String,
+    pub light_r: u8,
+    pub light_g: u8,
+    pub light_b: u8,
     pub mesh: String,
     //TODO behavior
 }
 
 pub struct Block {
+    //TODO without lid
     pub lid: u16,
     pub id: u16,
     pub name: String,
+    //TODO MB rename to lum, lumen, illumination or something
+    pub light_r: u8,
+    pub light_g: u8,
+    pub light_b: u8,
     pub mesh: Rc<Mesh>,
 }
 
@@ -67,9 +73,20 @@ pub struct BlocksLoader {
     pub blocks_names: HashMap<String, Rc<Block>>,
     pub blocks_ids: HashMap<u16, Rc<Block>>,
     pub meshes_loader: MeshesLoader,
+    pub unknown_block: Rc<Block>,
 }
 
 impl BlocksLoader {
+
+    //TODO rewrite everywhere with this func
+    pub fn get_block(&self, block_lid: u16) -> Rc<Block> {
+        return if let Some(block) = self.loaded_blocks.get(block_lid as usize) {
+            block.clone()
+        } else {
+            self.unknown_block.clone()
+        }
+    }
+
     pub fn load(blocks_path: &Path, meshes_loader: MeshesLoader) -> Result<Self, Box<dyn std::error::Error>> {
         let mut loaded_blocks: Vec<Rc<Block>> = Vec::new();
         let mut blocks_names: HashMap<String, Rc<Block>> = HashMap::new();
@@ -85,6 +102,9 @@ impl BlocksLoader {
                         lid: loaded_blocks.len() as u16,
                         id: block_data.id,
                         name: block_data.name,
+                        light_r: block_data.light_r,
+                        light_g: block_data.light_g,
+                        light_b: block_data.light_b,
                         mesh: mesh.clone(),
                     } );
                     loaded_blocks.push(block_ref.clone());
@@ -127,6 +147,11 @@ impl BlocksLoader {
         } else {
             return Err(Box::new(BlocksLoadingError::DeserializationError()));
         }
-        return Ok(Self { loaded_blocks, blocks_names, blocks_ids, meshes_loader });
+        return if let Some(block) = loaded_blocks.get(UNKNOWN_BLOCK_ID as usize) {
+            let unknown_block = block.clone();
+            Ok(Self { loaded_blocks, blocks_names, blocks_ids, meshes_loader, unknown_block })
+        } else {
+            Err(Box::new(BlocksLoadingError::DefaultBlockNotFoundError()))
+        }
     }
 }

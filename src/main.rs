@@ -2,6 +2,7 @@ use std::path::Path;
 use std::ptr;
 use std::rc::Rc;
 use glfw::ffi::KEY_ESCAPE;
+use rand::distributions::uniform::SampleBorrow;
 use rand::Rng;
 use cubecode_a000::chunk::{Chunk, LayerChunkGenerator, SubChunk};
 use cubecode_a000::input::keyboard::Keyboard;
@@ -10,10 +11,12 @@ use cubecode_a000::render::buffer::Buffer;
 use cubecode_a000::render::camera::Camera;
 use cubecode_a000::render::faces_loader::FacesLoader;
 use cubecode_a000::render::gui_renderer::GuiRenderer;
+use cubecode_a000::render::light::light_map::{B_CHANNEL, G_CHANNEL, LightMap, R_CHANNEL, S_CHANNEL};
+use cubecode_a000::render::light::light_solver::LightSolver;
 use cubecode_a000::render::meshes_loader::MeshesLoader;
 use cubecode_a000::render::shader::Shader;
 use cubecode_a000::render::shader_program::ShaderProgram;
-use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, TexturedVertex, Vec3s};
+use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, LightedTexVertex, Vec3s, Vec3b};
 use cubecode_a000::render::vertex_array::VertexArray;
 use cubecode_a000::set_attribute;
 use cubecode_a000::window::Window;
@@ -46,7 +49,9 @@ pub const VERTEX_SHADER_SOURCE: &str = r#"
 
 in vec3 pos;
 in vec2 tex;
+in vec4 light;
 
+out vec4 col;
 out vec2 outTexCoord;
 
 uniform mat4 viewMat;
@@ -54,6 +59,8 @@ uniform mat4 modelMat;
 
 void main() {
     gl_Position = viewMat * modelMat * vec4(pos, 1.0);
+    col = vec4(light.r, light.g, light.b, 1.0f);
+    col.rgb += light.a;
     outTexCoord = tex;
 }
 "#;
@@ -62,13 +69,16 @@ pub const FRAGMENT_SHADER_SOURCE: &str = r#"
 #version 330
 out vec4 FragColor;
 in vec2 outTexCoord;
+in vec4 col;
 
 uniform sampler2D atlas;
 
 void main() {
-    FragColor = texture(atlas, outTexCoord);
+    FragColor = col * texture(atlas, outTexCoord);
 }
 "#;
+
+const NEIGHBORHOOD: [Vec3b; 6] = [[0, 0, -1], [0, 0, 1], [0, -1, 0], [0, 1, 0], [-1, 0, 0], [1, 0, 0]];
 
 fn main() {
     let keyboard = Keyboard::new();
@@ -101,11 +111,93 @@ fn main() {
                         proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
                         gui_renderer.set_asp_rat(asp_rat);
 
+                        //rewrite to other init_light_solvers function
+                        let solver_r = LightSolver::new(R_CHANNEL);
+                        let solver_g = LightSolver::new(G_CHANNEL);
+                        let solver_b = LightSolver::new(B_CHANNEL);
+                        let solver_s = LightSolver::new(S_CHANNEL);
+
+                        for x_pos in 0x00_u8..=0xFF_u8 {
+                            for y_pos in 0x00_u8..=0xFF_u8 {
+                                for z_pos in 0x00_u8..=0xFF_u8 {
+                                    let pos: Vec3ub = [x_pos, y_pos, z_pos];
+                                    let block_lid = world.get_block(&pos);
+                                    let mut light_r: u8 = 0;
+                                    let mut light_g: u8 = 0;
+                                    let mut light_b: u8 = 0;
+                                    if let Some(block) = blocks_loader.loaded_blocks.get(block_lid as usize) {
+                                        light_r = block.light_r;
+                                        light_g = block.light_g;
+                                        light_b = block.light_b;
+                                    } else {
+                                        world.set_block(&pos, UNKNOWN_BLOCK_ID);
+                                        if let Some(block) = blocks_loader.loaded_blocks.get(UNKNOWN_BLOCK_ID as usize) {
+                                            light_r = block.light_r;
+                                            light_g = block.light_g;
+                                            light_b = block.light_b;
+                                        } else {
+                                            println!("FATAL ERROR 0");
+                                            return;
+                                        }
+                                    }
+                                    if light_r != 0 {solver_r.add(&world, &pos, light_r);}
+                                    if light_g != 0 {solver_g.add(&world, &pos, light_g);}
+                                    if light_b != 0 {solver_b.add(&world, &pos, light_b);}
+                                }
+                            }
+                        }
+
+                        for x_pos in 0x00_u8..=0xFF_u8 {
+                            for z_pos in 0x00_u8..=0xFF_u8 {
+                                for y_pos in (0x00_u8..=0xFF_u8).rev() {
+                                    let pos: Vec3ub = [x_pos, y_pos, z_pos];
+                                    let block_lid: u16 = world.get_block(&pos);
+                                    if blocks_loader.get_block(block_lid).mesh.is_cube() {
+                                        break;
+                                    }
+                                    world.set_light_level(&pos, S_CHANNEL, 0x0F);
+                                }
+                            }
+                        }
+
+                        for x_pos in 0x00_u8..=0xFF_u8 {
+                            for z_pos in 0x00_u8..=0xFF_u8 {
+                                for y_pos in (0x00_u8..=0xFF_u8).rev() {
+                                    let pos: Vec3ub = [x_pos, y_pos, z_pos];
+                                    let block_lid: u16 = world.get_block(&pos);
+                                    if blocks_loader.get_block(block_lid).mesh.is_cube() {
+                                        break;
+                                    }
+
+                                    let mut flag: bool = false;
+                                    for neigh in NEIGHBORHOOD {
+                                        if let Some(neigh_pos) = LightSolver::get_neighbor_pos(&pos, &neigh) {
+                                            if world.get_light_level(&neigh_pos, S_CHANNEL) == 0 {
+                                                flag = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if flag {
+                                        solver_s.add_last(&world, &pos);
+                                    }
+                                }
+                            }
+                        }
+
+                        solver_r.solve(&world, &blocks_loader);
+                        solver_g.solve(&world, &blocks_loader);
+                        solver_b.solve(&world, &blocks_loader);
+                        solver_s.solve(&world, &blocks_loader);
+                        //
+
                         unsafe {
                             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
                             gl::Enable(gl::BLEND);
                             gl::Enable(gl::DEPTH_TEST);
                         }
+                        let mut bflag = true;
+                        let mut dflag = true;
                         while !window.should_close() {
                             window.process_events();
                             window.swap_buffers();
@@ -179,30 +271,117 @@ fn main() {
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::E) {
-                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
-                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
-                                    let mut iend: Vec3ub = [0, 0, 0];
-                                    world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
-                                    world.set_block(&iend, AIR_BLOCK_ID);
+                                    if dflag || window.keyboard.get_key_state(glfw::Key::R) {
+                                        dflag = false;
+                                        let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                        let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                        let mut iend: Vec3ub = [0, 0, 0];
+                                        world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
+                                        world.set_block(&iend, AIR_BLOCK_ID);
+                                        solver_r.remove(&world, &iend);
+                                        solver_g.remove(&world, &iend);
+                                        solver_b.remove(&world, &iend);
+                                        solver_r.solve(&world, &blocks_loader);
+                                        solver_g.solve(&world, &blocks_loader);
+                                        solver_b.solve(&world, &blocks_loader);
+                                        //TODO rename [0, 1, 0] to neighbor top
+                                        let mut flag: bool = false;
+                                        if let Some(neigh_pos) = LightSolver::get_neighbor_pos(&iend, &[0, 1, 0]) {
+                                            if world.get_light_level(&neigh_pos, S_CHANNEL) == 0x0F {
+                                                flag = true;
+                                            }
+                                        } else {
+                                            flag = true;
+                                        }
+                                        if flag {
+                                            for y_pos in (0x00..=iend[1]).rev() {
+                                                let spos: Vec3ub = [iend[0], y_pos, iend[2]];
+                                                let block_lid: u16 = world.get_block(&spos);
+                                                if blocks_loader.get_block(block_lid).mesh.is_cube() {
+                                                    break;
+                                                }
+                                                solver_s.add(&world, &spos, 0x0F);
+                                            }
+                                        }
+                                        for neigh in NEIGHBORHOOD {
+                                            if let Some(neigh_pos) = LightSolver::get_neighbor_pos(&iend, &neigh) {
+                                                solver_r.add_last(&world, &neigh_pos);
+                                                solver_g.add_last(&world, &neigh_pos);
+                                                solver_b.add_last(&world, &neigh_pos);
+                                                solver_s.add_last(&world, &neigh_pos);
+                                            }
+                                        }
+                                        solver_r.solve(&world, &blocks_loader);
+                                        solver_g.solve(&world, &blocks_loader);
+                                        solver_b.solve(&world, &blocks_loader);
+                                        solver_s.solve(&world, &blocks_loader);
+                                    }
+                                } else {
+                                    dflag = true;
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::P) {
-                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
-                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
-                                    let mut iend: Vec3ub = [0, 0, 0];
-                                    world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend);
-                                    if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
-                                        if block != AIR_BLOCK_ID {
-                                            let res: Vec3s = [(iend[0] as i16 + norm[0] as i16), (iend[1] as i16 + norm[1] as i16), (iend[2] as i16 + norm[2] as i16)];
-                                            if res[0] >= 0x00 && res[0] <= 0xFF &&
-                                                res[1] >= 0x00 && res[1] <= 0xFF &&
-                                                res[2] >= 0x00 && res[2] <= 0xFF {
-                                                if world.get_block(&[res[0] as u8, res[1] as u8, res[2] as u8]) == AIR_BLOCK_ID {
-                                                    world.set_block(&[res[0] as u8, res[1] as u8, res[2] as u8], UNKNOWN_BLOCK_ID);
+                                    if bflag || window.keyboard.get_key_state(glfw::Key::R) {
+                                        bflag = false;
+                                        let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                        let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                        let mut iend: Vec3ub = [0, 0, 0];
+                                        if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
+                                            if block != AIR_BLOCK_ID {
+                                                let res: Vec3s = [(iend[0] as i16 + norm[0] as i16), (iend[1] as i16 + norm[1] as i16), (iend[2] as i16 + norm[2] as i16)];
+                                                if res[0] >= 0x00 && res[0] <= 0xFF &&
+                                                    res[1] >= 0x00 && res[1] <= 0xFF &&
+                                                    res[2] >= 0x00 && res[2] <= 0xFF {
+                                                    let pos: Vec3ub = [res[0] as u8, res[1] as u8, res[2] as u8];
+                                                    if world.get_block(&pos) == AIR_BLOCK_ID {
+                                                        world.set_block(&pos, UNKNOWN_BLOCK_ID);
+                                                        solver_r.remove(&world, &pos);
+                                                        solver_g.remove(&world, &pos);
+                                                        solver_b.remove(&world, &pos);
+                                                        solver_s.remove(&world, &pos);
+                                                        //TODO rename [0, -1, 0] to neighbor bottom
+
+                                                        //TODO REWRITE IT
+
+                                                        //PLACE WITH THE MOST WTF ERROR (IEND CONFUSED WITH POS)
+                                                        if let Some(neigh_pos) = LightSolver::get_neighbor_pos(&pos, &[0, -1, 0]) {
+                                                            for y_pos in (0x00..=neigh_pos[1]).rev() {
+                                                                let spos: Vec3ub = [pos[0], y_pos, pos[2]];
+                                                                solver_s.remove(&world, &spos);
+                                                                if let Some(bottom_spos) = LightSolver::get_neighbor_pos(&spos, &[0, -1, 0]) {
+                                                                    let block_lid: u16 = world.get_block(&bottom_spos);
+                                                                    if blocks_loader.get_block(block_lid).mesh.is_cube() {
+                                                                        break;
+                                                                    }
+                                                                } else if y_pos == 0 {
+                                                                    break;
+                                                                }
+                                                            }
+                                                            solver_r.solve(&world, &blocks_loader);
+                                                            solver_g.solve(&world, &blocks_loader);
+                                                            solver_b.solve(&world, &blocks_loader);
+                                                            solver_s.solve(&world, &blocks_loader);
+                                                            let block = blocks_loader.get_block(UNKNOWN_BLOCK_ID);
+                                                            if block.light_r != 0 {
+                                                                solver_r.add(&world, &pos, block.light_r);
+                                                                solver_r.solve(&world, &blocks_loader);
+                                                            }
+                                                            if block.light_g != 0 {
+                                                                solver_g.add(&world, &pos, block.light_g);
+                                                                solver_r.solve(&world, &blocks_loader);
+                                                            }
+                                                            if block.light_b != 0 {
+                                                                solver_b.add(&world, &pos, block.light_b);
+                                                                solver_r.solve(&world, &blocks_loader);
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                } else {
+                                    bflag = true;
                                 }
 
 
@@ -230,9 +409,35 @@ fn main() {
                                     println!("{:?}", camera.get_position());
                                 }
 
+                                if window.keyboard.get_key_state(glfw::Key::B) {
+                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut iend: Vec3ub = [0, 0, 0];
+                                    if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
+                                        iend[1] -= 1;
+                                        if block != AIR_BLOCK_ID {
+                                            println!("lid: {}, r: {}, g: {}, b: {}, s: {}", world.get_block(&iend), world.get_light_level(&iend, 0), world.get_light_level(&iend, 1), world.get_light_level(&iend, 2), world.get_light_level(&iend, 3));
+                                        }
+                                    }
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::L) {
+                                    let mut end: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut norm: Vec3f = [0.0, 0.0, 0.0];
+                                    let mut iend: Vec3ub = [0, 0, 0];
+                                    if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
+                                        solver_r.add(&world, &iend, 0x0F);
+                                        println!("ok");
+                                    }
+                                }
+
                                 camera.move_position(&move_pos_cam_vec);
                                 camera.move_rotation(&move_rot_cam_vec);
                             }
+                            solver_r.solve(&world, &blocks_loader);
+                            solver_g.solve(&world, &blocks_loader);
+                            solver_b.solve(&world, &blocks_loader);
+                            solver_s.solve(&world, &blocks_loader);
                             if let Err(_) = world.render(&blocks_loader) {
                                 println!("Failed to render world");
                             }
