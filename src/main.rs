@@ -2,6 +2,7 @@ use std::path::Path;
 use std::ptr;
 use std::rc::Rc;
 use glfw::ffi::KEY_ESCAPE;
+use glfw::{MouseButtonLeft, MouseButtonRight};
 use rand::distributions::uniform::SampleBorrow;
 use rand::Rng;
 use cubecode_a000::chunk::{Chunk, LayerChunkGenerator, SubChunk};
@@ -110,6 +111,7 @@ fn main() {
                         let mut asp_rat: f32 = (800.0 / 600.0);
                         let mut view_mat = Mat4f::new();
                         let mut proj_mat = Mat4f::new();
+                        let mut cur_lid: u16 = UNKNOWN_BLOCK_ID;
                         proj_mat.identity().perspective(fov, asp_rat, z_near, z_far);
                         gui_renderer.set_asp_rat(asp_rat);
 
@@ -279,7 +281,23 @@ fn main() {
                                     move_rot_cam_vec[1] = ((pos[0] as f32) / (min_side as f32)) * 86.0f32;
                                 }
 
-                                if window.keyboard.get_key_state(glfw::Key::E) {
+                                if window.keyboard.get_key_state(glfw::Key::Num1) {
+                                    cur_lid = UNKNOWN_BLOCK_ID;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Num2) {
+                                    cur_lid = DIRT_BLOCK_ID;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Num3) {
+                                    cur_lid = GRASS_BLOCK_ID;
+                                }
+
+                                if window.keyboard.get_key_state(glfw::Key::Num4) {
+                                    cur_lid = BEDROCK_BLOCK_ID;
+                                }
+
+                                if window.mouse.borrow().get_button_state(MouseButtonRight) {
                                     if dflag || window.keyboard.get_key_state(glfw::Key::R) {
                                         dflag = false;
                                         let mut end: Vec3f = [0.0, 0.0, 0.0];
@@ -329,7 +347,7 @@ fn main() {
                                     dflag = true;
                                 }
 
-                                if window.keyboard.get_key_state(glfw::Key::P) {
+                                if window.mouse.borrow().get_button_state(MouseButtonLeft) {
                                     if bflag || window.keyboard.get_key_state(glfw::Key::R) {
                                         bflag = false;
                                         let mut end: Vec3f = [0.0, 0.0, 0.0];
@@ -343,7 +361,8 @@ fn main() {
                                                     res[2] >= 0x00 && res[2] <= 0xFF {
                                                     let pos: Vec3ub = [res[0] as u8, res[1] as u8, res[2] as u8];
                                                     if world.get_block(&pos) == AIR_BLOCK_ID {
-                                                        world.set_block(&pos, UNKNOWN_BLOCK_ID);
+                                                        let block = blocks_loader.get_block(cur_lid);
+                                                        world.set_block(&pos, block.lid);
                                                         solver_r.remove(&world, &pos);
                                                         solver_g.remove(&world, &pos);
                                                         solver_b.remove(&world, &pos);
@@ -370,7 +389,6 @@ fn main() {
                                                             solver_g.solve(&world, &blocks_loader);
                                                             solver_b.solve(&world, &blocks_loader);
                                                             solver_s.solve(&world, &blocks_loader);
-                                                            let block = blocks_loader.get_block(UNKNOWN_BLOCK_ID);
                                                             if block.light_r != 0 {
                                                                 solver_r.add(&world, &pos, block.light_r);
                                                                 solver_r.solve(&world, &blocks_loader);
@@ -415,7 +433,7 @@ fn main() {
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::M) {
-                                    println!("{:?}", camera.get_position());
+                                    println!("{:?}, {:?}", camera.get_position(), camera.get_rotation());
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::B) {

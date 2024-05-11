@@ -36,6 +36,7 @@ impl Window {
             window.make_current();
             window.set_key_polling(true);
             window.set_cursor_pos_polling(true);
+            window.set_mouse_button_polling(true);
             window.set_framebuffer_size_polling(true);
             gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
             Ok(Self {
@@ -78,6 +79,9 @@ impl Window {
                 }
                 WindowEvent::CursorPos(xpos, ypos) => {
                     self.mouse.borrow_mut().cursor_pos_callback(xpos, ypos);
+                }
+                WindowEvent::MouseButton(button, action, modifiers) => {
+                    self.mouse.borrow_mut().button_callback(button, action, modifiers);
                 }
                 _ => {}
             }

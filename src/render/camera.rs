@@ -4,7 +4,8 @@ use crate::render::types::{Mat4f, Vec3f, Vec4f};
 
 //TODO REWRITE ALL
 
-const MINROTX: f32 = 0.5f32 * PI;
+const ERROR_FACTOR: f32 = 0.008109059; //cos(90) = 0, but = -0.0...
+const MINROTX: f32 = (0.5f32 * PI) - ERROR_FACTOR;
 const MAXROTX: f32 = 1.5f32 * PI;
 
 pub struct Camera {
