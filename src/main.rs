@@ -6,6 +6,7 @@ use rand::distributions::uniform::SampleBorrow;
 use rand::Rng;
 use cubecode_a000::chunk::{Chunk, LayerChunkGenerator, SubChunk};
 use cubecode_a000::input::keyboard::Keyboard;
+use cubecode_a000::input::mouse::Mouse;
 use cubecode_a000::render::blocks_loader::{AIR_BLOCK_ID, BEDROCK_BLOCK_ID, BlocksLoader, DIRT_BLOCK_ID, GRASS_BLOCK_ID, UNKNOWN_BLOCK_ID};
 use cubecode_a000::render::buffer::Buffer;
 use cubecode_a000::render::camera::Camera;
@@ -16,7 +17,7 @@ use cubecode_a000::render::light::light_solver::LightSolver;
 use cubecode_a000::render::meshes_loader::MeshesLoader;
 use cubecode_a000::render::shader::Shader;
 use cubecode_a000::render::shader_program::ShaderProgram;
-use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, LightedTexVertex, Vec3s, Vec3b};
+use cubecode_a000::render::types::{Mat4f, Vec3f, Vec3ub, LightedTexVertex, Vec3s, Vec3b, add_vec3f, sub_vec3f, norm_vec3f, Vec2d};
 use cubecode_a000::render::vertex_array::VertexArray;
 use cubecode_a000::set_attribute;
 use cubecode_a000::window::Window;
@@ -81,8 +82,9 @@ void main() {
 const NEIGHBORHOOD: [Vec3b; 6] = [[0, 0, -1], [0, 0, 1], [0, -1, 0], [0, 1, 0], [-1, 0, 0], [1, 0, 0]];
 
 fn main() {
-    let keyboard = Keyboard::new();
-    if let Ok(mut window) = Window::init(SCR_WIDTH, SCR_HEIGHT, TITLE, keyboard) {
+    let keyboard: Keyboard = Keyboard::new();
+    let mouse: Mouse = Mouse::new();
+    if let Ok(mut window) = Window::init(SCR_WIDTH, SCR_HEIGHT, TITLE, keyboard, mouse) {
         if let Ok(shader_program_data) = get_shader_program(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE) {
             let shader_program: Rc<ShaderProgram> = Rc::new(shader_program_data);
             if let Ok(blocks_loader) = get_blocks_loader(shader_program.clone()) {
@@ -196,8 +198,9 @@ fn main() {
                             gl::Enable(gl::BLEND);
                             gl::Enable(gl::DEPTH_TEST);
                         }
-                        let mut bflag = true;
-                        let mut dflag = true;
+                        let mut bflag: bool = true;
+                        let mut dflag: bool = true;
+                        let mut tab_flag: bool = true;
                         while !window.should_close() {
                             window.process_events();
                             window.swap_buffers();
@@ -217,7 +220,7 @@ fn main() {
                                 gl::ClearColor(0.2, 0.3, 0.3, 1.0);
                             }
                             {
-                                let mut move_pos_cam_vec: Vec3f = [0.0, 0.0, 0.0];
+                                let mut move_pos_cam_dir: Vec3f = [0.0, 0.0, 0.0];
                                 let mut move_rot_cam_vec: Vec3f = [0.0, 0.0, 0.0];
 
                                 if window.keyboard.get_key_state(glfw::Key::Escape) {
@@ -227,47 +230,53 @@ fn main() {
 
                                 //TODO ROTSPEED MOVESPEED
                                 if window.keyboard.get_key_state(glfw::Key::D) {
-                                    move_pos_cam_vec[0] += 0.05;
+                                    add_vec3f(&mut move_pos_cam_dir, camera.get_rdir());
                                 }
                                 if window.keyboard.get_key_state(glfw::Key::A) {
-                                    move_pos_cam_vec[0] -= 0.05;
+                                    sub_vec3f(&mut move_pos_cam_dir, camera.get_rdir());
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::Space) {
-                                    move_pos_cam_vec[1] += 0.05;
+                                    add_vec3f(&mut move_pos_cam_dir, camera.get_udir());
                                 }
                                 if window.keyboard.get_key_state(glfw::Key::LeftShift) || window.keyboard.get_key_state(glfw::Key::RightShift) {
-                                    move_pos_cam_vec[1] -= 0.05;
+                                    sub_vec3f(&mut move_pos_cam_dir, camera.get_udir());
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::S) {
-                                    move_pos_cam_vec[2] += 0.05;
+                                    sub_vec3f(&mut move_pos_cam_dir, camera.get_fdir());
                                 }
                                 if window.keyboard.get_key_state(glfw::Key::W) {
-                                    move_pos_cam_vec[2] -= 0.05;
+                                    add_vec3f(&mut move_pos_cam_dir, camera.get_fdir());
                                 }
+                                if window.mouse.borrow().get_cursor_state() {
+                                    if window.keyboard.get_key_state(glfw::Key::Down) {
+                                        //let cur_rot_x: f32 = camera.get_rotation_x();
+                                        move_rot_cam_vec[0] += 0.5;
+                                    }
+                                    if window.keyboard.get_key_state(glfw::Key::Up) {
+                                        //let cur_rot_x: f32 = camera.get_rotation_x();
+                                        move_rot_cam_vec[0] -= 0.5;
+                                    }
 
-                                if window.keyboard.get_key_state(glfw::Key::Down) {
-                                    //let cur_rot_x: f32 = camera.get_rotation_x();
-                                    move_rot_cam_vec[0] += 0.5;
-                                }
-                                if window.keyboard.get_key_state(glfw::Key::Up) {
-                                    //let cur_rot_x: f32 = camera.get_rotation_x();
-                                    move_rot_cam_vec[0] -= 0.5;
-                                }
-
-                                if window.keyboard.get_key_state(glfw::Key::Right) {
-                                    move_rot_cam_vec[1] += 0.5;
-                                }
-                                if window.keyboard.get_key_state(glfw::Key::Left) {
-                                    move_rot_cam_vec[1] -= 0.5;
-                                }
-
-                                if window.keyboard.get_key_state(glfw::Key::H) {
-                                    move_rot_cam_vec[2] += 0.5;
-                                }
-                                if window.keyboard.get_key_state(glfw::Key::Y) {
-                                    move_rot_cam_vec[2] -= 0.5;
+                                    if window.keyboard.get_key_state(glfw::Key::Right) {
+                                        move_rot_cam_vec[1] += 0.5;
+                                    }
+                                    if window.keyboard.get_key_state(glfw::Key::Left) {
+                                        move_rot_cam_vec[1] -= 0.5;
+                                    }
+                                    if window.keyboard.get_key_state(glfw::Key::H) {
+                                        move_rot_cam_vec[2] += 0.5;
+                                    }
+                                    if window.keyboard.get_key_state(glfw::Key::Y) {
+                                        move_rot_cam_vec[2] -= 0.5;
+                                    }
+                                } else {
+                                    let pos: Vec2d = window.mouse.borrow().get_cursor_delta_pos().clone();
+                                    let min_side = window.get_width().min(window.get_height());
+                                    //86 - sensitivity
+                                    move_rot_cam_vec[0] = ((pos[1] as f32) / (min_side as f32)) * 86.0f32;
+                                    move_rot_cam_vec[1] = ((pos[0] as f32) / (min_side as f32)) * 86.0f32;
                                 }
 
                                 if window.keyboard.get_key_state(glfw::Key::E) {
@@ -414,7 +423,6 @@ fn main() {
                                     let mut norm: Vec3f = [0.0, 0.0, 0.0];
                                     let mut iend: Vec3ub = [0, 0, 0];
                                     if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
-                                        iend[1] -= 1;
                                         if block != AIR_BLOCK_ID {
                                             println!("lid: {}, r: {}, g: {}, b: {}, s: {}", world.get_block(&iend), world.get_light_level(&iend, 0), world.get_light_level(&iend, 1), world.get_light_level(&iend, 2), world.get_light_level(&iend, 3));
                                         }
@@ -427,11 +435,19 @@ fn main() {
                                     let mut iend: Vec3ub = [0, 0, 0];
                                     if let Some(block) = world.ray_get(&camera.get_position(), &camera.get_dir(), 16.0, &mut end, &mut norm, &mut iend) {
                                         solver_r.add(&world, &iend, 0x0F);
-                                        println!("ok");
                                     }
                                 }
 
-                                camera.move_position(&move_pos_cam_vec);
+                                if window.keyboard.get_key_state(glfw::Key::Tab) {
+                                    if tab_flag {
+                                        tab_flag = false;
+                                        window.mouse.borrow_mut().toggle_cursor(&window);
+                                    }
+                                } else {
+                                    tab_flag = true;
+                                }
+                                norm_vec3f(&mut move_pos_cam_dir);
+                                camera.move_position(&move_pos_cam_dir, 0.05);
                                 camera.move_rotation(&move_rot_cam_vec);
                             }
                             solver_r.solve(&world, &blocks_loader);

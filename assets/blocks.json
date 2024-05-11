@@ -11,8 +11,8 @@
 		"id": 1,
 		"name": "unknown",
 		"mesh": "unknown_block",
-		"light_r": 0,
-		"light_g": 0,
+		"light_r": 15,
+		"light_g": 7,
 		"light_b": 0
 	},
 	{

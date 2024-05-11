@@ -10,7 +10,7 @@ use thiserror::Error;
 pub(crate) type Vec2f = [f32; 2];
 pub type Vec3f = [f32; 3];
 pub type Vec4f = [f32; 4];
-type Vec2d = [f64; 2];
+pub type Vec2d = [f64; 2];
 type Vec3d = [f64; 3];
 type Vec4d = [f64; 4];
 type Vec2i = [i32; 2];
@@ -19,7 +19,7 @@ type Vec4i = [i32; 4];
 type Vec2l = [i64; 2];
 type Vec3l = [i64; 3];
 type Vec4l = [i64; 4];
-type Vec2ui = [u32; 2];
+pub type Vec2ui = [u32; 2];
 type Vec3ui = [u32; 3];
 type Vec4ui = [u32; 4];
 type Vec2ul = [u64; 2];
@@ -42,6 +42,29 @@ type RGBAColor = [f32; 4];
 pub type RGBSColor = [f32; 4];
 
 type TexCoord = Vec2f;
+
+
+//TODO REWRITE WITH OPERANDS
+pub fn add_vec3f(x: &mut Vec3f, y: &Vec3f) {
+    x[0] += y[0];
+    x[1] += y[1];
+    x[2] += y[2];
+}
+
+pub fn sub_vec3f(x: &mut Vec3f, y: &Vec3f) {
+    x[0] -= y[0];
+    x[1] -= y[1];
+    x[2] -= y[2];
+}
+
+pub fn norm_vec3f(x: &mut Vec3f) {
+    let len: f32 = ((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2])).sqrt();
+    if len != 0.0f32 {
+        x[0] /= len;
+        x[1] /= len;
+        x[2] /= len;
+    }
+}
 
 
 #[derive(Clone)]
