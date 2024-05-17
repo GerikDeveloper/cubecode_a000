@@ -82,7 +82,7 @@ impl World {
     pub fn ray_get(&self, pos: &Vec3f, dir: &Vec3f, max_dist: f32, end: &mut Vec3f, norm: &mut Vec3f, iend: &mut Vec3ub) -> Option<u16> {
         let mut pdist: f32 = 0.0; //passed dist
 
-        let mut ipos: Vec3i = [(pos[0] as i32), (pos[1] as i32), (pos[2] as i32)];
+        let mut ipos: Vec3i = [(pos[0].floor() as i32), (pos[1].floor() as i32), (pos[2].floor() as i32)];
 
         let stepx: f32 = {if dir[0] > 0.0f32 { 1.0 } else { -1.0 }};
         let stepy: f32 = {if dir[1] > 0.0f32 { 1.0 } else { -1.0 }};

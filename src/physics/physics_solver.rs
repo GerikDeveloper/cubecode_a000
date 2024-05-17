@@ -32,9 +32,9 @@ impl PhysicsSolver {
 
             //x
             if vel[0] < 0.0 {
-                for y_pos in ((pos[1] - hsz[1] + E) as i32)..=((pos[1] + hsz[1] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((pos[2] - hsz[2] + E) as i32)..=((pos[2] + hsz[2] - E) as i32) { //as i32 eq to floor
-                        let x_pos: i32 = ((pos[0] - hsz[0] - E) as i32);
+                for y_pos in ((pos[1] - hsz[1] + E).floor() as i32)..=((pos[1] + hsz[1] - E).floor() as i32) {
+                    for z_pos in ((pos[2] - hsz[2] + E).floor() as i32)..=((pos[2] + hsz[2] - E).floor() as i32) {
+                        let x_pos: i32 = ((pos[0] - hsz[0] - E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[0] = 0.0;
                             pos[0] = (x_pos as f32) + 1.0 + hsz[0] + E;
@@ -44,9 +44,9 @@ impl PhysicsSolver {
                 }
             }
             if vel[0] > 0.0 {
-                for y_pos in ((pos[1] - hsz[1] + E) as i32)..=((pos[1] + hsz[1] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((pos[2] - hsz[2] + E) as i32)..=((pos[2] + hsz[2] - E) as i32) { //as i32 eq to floor
-                        let x_pos = ((pos[0] + hsz[0] + E) as i32);
+                for y_pos in ((pos[1] - hsz[1] + E).floor() as i32)..=((pos[1] + hsz[1] - E).floor() as i32) {
+                    for z_pos in ((pos[2] - hsz[2] + E).floor() as i32)..=((pos[2] + hsz[2] - E).floor() as i32) {
+                        let x_pos = ((pos[0] + hsz[0] + E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[0] = 0.0;
                             pos[0] = ((x_pos as f32) - hsz[0]) - E;
@@ -59,9 +59,9 @@ impl PhysicsSolver {
 
             //z
             if vel[2] < 0.0 {
-                for y_pos in ((pos[1] - hsz[1] + E) as i32)..=((pos[1] + hsz[1] - E) as i32) { //as i32 eq to floor
-                    for x_pos in ((pos[0] - hsz[0] + E) as i32)..=((pos[0] + hsz[0] - E) as i32) { //as i32 eq to floor
-                        let z_pos: i32 = ((pos[2] - hsz[2] - E) as i32);
+                for y_pos in ((pos[1] - hsz[1] + E).floor() as i32)..=((pos[1] + hsz[1] - E).floor() as i32) {
+                    for x_pos in ((pos[0] - hsz[0] + E).floor() as i32)..=((pos[0] + hsz[0] - E).floor() as i32) {
+                        let z_pos: i32 = ((pos[2] - hsz[2] - E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[2] = 0.0;
                             pos[2] = (z_pos as f32) + 1.0 + hsz[2] + E;
@@ -71,9 +71,9 @@ impl PhysicsSolver {
                 }
             }
             if vel[2] > 0.0 {
-                for y_pos in ((pos[1] - hsz[1] + E) as i32)..=((pos[1] + hsz[1] - E) as i32) { //as i32 eq to floor
-                    for x_pos in ((pos[0] - hsz[0] + E) as i32)..=((pos[0] + hsz[0] - E) as i32) { //as i32 eq to floor
-                        let z_pos = ((pos[2] + hsz[2] + E) as i32);
+                for y_pos in ((pos[1] - hsz[1] + E).floor() as i32)..=((pos[1] + hsz[1] - E).floor() as i32) {
+                    for x_pos in ((pos[0] - hsz[0] + E).floor() as i32)..=((pos[0] + hsz[0] - E).floor() as i32) {
+                        let z_pos = ((pos[2] + hsz[2] + E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[2] = 0.0;
                             pos[2] = ((z_pos as f32) - hsz[2]) - E;
@@ -88,9 +88,9 @@ impl PhysicsSolver {
             hitbox.grounded = false;
             if vel[1] < 0.0 {
                 'end:
-                for x_pos in ((pos[0] - hsz[0] + E) as i32)..=((pos[0] + hsz[0] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((pos[2] - hsz[2] + E) as i32)..=((pos[2] + hsz[2] - E) as i32) { //as i32 eq to floor
-                        let y_pos: i32 = ((pos[1] - hsz[1] - E) as i32);
+                for x_pos in ((pos[0] - hsz[0] + E).floor() as i32)..=((pos[0] + hsz[0] - E).floor() as i32) {
+                    for z_pos in ((pos[2] - hsz[2] + E).floor() as i32)..=((pos[2] + hsz[2] - E).floor() as i32) {
+                        let y_pos: i32 = ((pos[1] - hsz[1] - E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[1] = 0.0;
                             pos[1] = (y_pos as f32) + 1.0 + hsz[1];
@@ -104,9 +104,9 @@ impl PhysicsSolver {
                 }
             }
             if vel[1] > 0.0 {
-                for x_pos in ((pos[0] - hsz[0] + E) as i32)..=((pos[0] + hsz[0] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((pos[2] - hsz[2] + E) as i32)..=((pos[2] + hsz[2] - E) as i32) { //as i32 eq to floor
-                        let y_pos = ((pos[1] + hsz[1] + E) as i32);
+                for x_pos in ((pos[0] - hsz[0] + E).floor() as i32)..=((pos[0] + hsz[0] - E).floor() as i32) {
+                    for z_pos in ((pos[2] - hsz[2] + E).floor() as i32)..=((pos[2] + hsz[2] - E).floor() as i32) {
+                        let y_pos = ((pos[1] + hsz[1] + E).floor() as i32);
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             vel[1] = 0.0;
                             pos[1] = ((y_pos as f32) - hsz[1]) + E;
@@ -122,11 +122,11 @@ impl PhysicsSolver {
             pos[2] += vel[2] * step;
 
             if hitbox.shifting && hitbox.grounded {
-                let y_pos: i32 = ((pos[1] - hsz[1]) - E) as i32;
+                let y_pos: i32 = ((pos[1] - hsz[1]) - E).floor() as i32;
                 hitbox.grounded = false;
 
-                for x_pos in ((last_pos_x - hsz[0] + E) as i32)..=((last_pos_x + hsz[0] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((pos[2] - hsz[2] + E) as i32)..=((pos[2] + hsz[2] - E) as i32) { //as i32 eq to floor
+                for x_pos in ((last_pos_x - hsz[0] + E).floor() as i32)..=((last_pos_x + hsz[0] - E).floor() as i32) {
+                    for z_pos in ((pos[2] - hsz[2] + E).floor() as i32)..=((pos[2] + hsz[2] - E).floor() as i32) {
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             hitbox.grounded = true;
                             break;
@@ -135,8 +135,8 @@ impl PhysicsSolver {
                 }
                 if !hitbox.grounded {pos[2] = last_pos_z;}
 
-                for x_pos in ((pos[0] - hsz[0] + E) as i32)..=((pos[0] + hsz[0] - E) as i32) { //as i32 eq to floor
-                    for z_pos in ((last_pos_z - hsz[2] + E) as i32)..=((last_pos_z + hsz[2] - E) as i32) { //as i32 eq to floor
+                for x_pos in ((pos[0] - hsz[0] + E).floor() as i32)..=((pos[0] + hsz[0] - E).floor() as i32) {
+                    for z_pos in ((last_pos_z - hsz[2] + E).floor() as i32)..=((last_pos_z + hsz[2] - E).floor() as i32) {
                         if world.is_obstacle(&[x_pos, y_pos, z_pos]) {
                             hitbox.grounded = true;
                             break;
@@ -155,8 +155,8 @@ impl PhysicsSolver {
     pub fn is_block_inside(pos: &Vec3i, hitbox: &HitBox) -> bool {
         let hpos: &Vec3f = &hitbox.pos;
         let hsz: &Vec3f = &hitbox.half_size;
-        return pos[0] >= ((hpos[0] - hsz[0]) as i32) && pos[0] <= ((hpos[0] + hsz[0]) as i32) &&
-                pos[1] >= ((hpos[1] - hsz[1]) as i32) && pos[1] <= ((hpos[1] + hsz[1]) as i32) &&
-                pos[2] >= ((hpos[2] - hsz[2]) as i32) && pos[2] <= ((hpos[2] + hsz[2]) as i32);
+        return pos[0] >= ((hpos[0] - hsz[0]).floor() as i32) && pos[0] <= ((hpos[0] + hsz[0]).floor() as i32) &&
+                pos[1] >= ((hpos[1] - hsz[1]).floor() as i32) && pos[1] <= ((hpos[1] + hsz[1]).floor() as i32) &&
+                pos[2] >= ((hpos[2] - hsz[2]).floor() as i32) && pos[2] <= ((hpos[2] + hsz[2]).floor() as i32);
     }
 }
