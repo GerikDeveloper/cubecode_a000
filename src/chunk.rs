@@ -18,7 +18,7 @@ pub enum ChunkLoadingError {
     IdConstructError(),
 }
 
-
+//TODO REPLACE CHUNKS WITH SUBCHUNKS
 pub struct SubChunk {
     //TODO MB ANOTHER ARRAYS FOR CUSTOM BLOCKS
     pub data: RefCell<[[[u16; 16]; 16]; 16]>,

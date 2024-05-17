@@ -43,6 +43,8 @@ pub type RGBSColor = [f32; 4];
 
 type TexCoord = Vec2f;
 
+pub type RGBALine = [RGBAVertex3f; 2];
+
 
 //TODO REWRITE WITH OPERANDS
 pub fn add_vec3f(x: &mut Vec3f, y: &Vec3f) {
@@ -57,8 +59,13 @@ pub fn sub_vec3f(x: &mut Vec3f, y: &Vec3f) {
     x[2] -= y[2];
 }
 
+pub fn len_vec3f(x: &Vec3f) -> f32 {
+    return ((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2])).sqrt();
+}
+
+
 pub fn norm_vec3f(x: &mut Vec3f) {
-    let len: f32 = ((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2])).sqrt();
+    let len: f32 = len_vec3f(x);
     if len != 0.0f32 {
         x[0] /= len;
         x[1] /= len;
@@ -66,14 +73,13 @@ pub fn norm_vec3f(x: &mut Vec3f) {
     }
 }
 
-
 #[derive(Clone)]
 #[repr(C, packed)]
-pub struct ColorizedVertex(pub Vec2f, pub RGBColor);
+pub struct RGBAVertex2f(pub Vec2f, pub RGBAColor);
 
-impl Serialize for ColorizedVertex {
+impl Serialize for RGBAVertex2f {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        let mut state = serializer.serialize_struct("colorized_vertex", 2)?;
+        let mut state = serializer.serialize_struct("rgba_vertex_2f", 2)?;
         let pos = self.0;
         let col = self.1;
         state.serialize_field("pos", &pos)?;
@@ -82,7 +88,7 @@ impl Serialize for ColorizedVertex {
     }
 }
 
-impl<'de> Deserialize<'de> for ColorizedVertex {
+impl<'de> Deserialize<'de> for RGBAVertex2f {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         enum Field { Pos, Col }
 
@@ -113,10 +119,10 @@ impl<'de> Deserialize<'de> for ColorizedVertex {
         struct VertexVisitor;
 
         impl<'de> Visitor<'de> for VertexVisitor {
-            type Value = ColorizedVertex;
+            type Value = RGBAVertex2f;
 
             fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-                formatter.write_str("struct ColorizedVertex")
+                formatter.write_str("struct RGBAVertex2f")
             }
 
             fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
@@ -124,7 +130,7 @@ impl<'de> Deserialize<'de> for ColorizedVertex {
                     .ok_or_else(|| Error::invalid_length(0, &self))?;
                 let col = seq.next_element()?
                     .ok_or_else(|| Error::invalid_length(1, &self))?;
-                Ok(ColorizedVertex(pos, col))
+                Ok(RGBAVertex2f(pos, col))
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: MapAccess<'de> {
@@ -150,15 +156,109 @@ impl<'de> Deserialize<'de> for ColorizedVertex {
 
                 let pos = pos.ok_or_else(|| Error::missing_field("pos"))?;
                 let col = col.ok_or_else(|| Error::missing_field("col"))?;
-                Ok(ColorizedVertex(pos, col))
+                Ok(RGBAVertex2f(pos, col))
             }
         }
 
         const FIELDS: &'static [&'static str] = &["pos", "col"];
 
-        deserializer.deserialize_struct("ColorizedVertex", FIELDS, VertexVisitor)
+        deserializer.deserialize_struct("RGBAVertex2f", FIELDS, VertexVisitor)
     }
 }
+
+#[derive(Clone)]
+#[repr(C, packed)]
+pub struct RGBAVertex3f(pub Vec3f, pub RGBAColor);
+
+impl Serialize for RGBAVertex3f {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        let mut state = serializer.serialize_struct("rgba_vertex_3f", 2)?;
+        let pos = self.0;
+        let col = self.1;
+        state.serialize_field("pos", &pos)?;
+        state.serialize_field("col", &col)?;
+        state.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for RGBAVertex3f {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        enum Field { Pos, Col }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+
+                struct FieldVisitor;
+
+                impl<'de> Visitor<'de> for FieldVisitor {
+                    type Value = Field;
+
+                    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                        formatter.write_str("`pos` or `col`")
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
+                        match v {
+                            "pos" => Ok(Field::Pos),
+                            "col" => Ok(Field::Col),
+                            _ => Err(Error::unknown_field(v, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct VertexVisitor;
+
+        impl<'de> Visitor<'de> for VertexVisitor {
+            type Value = RGBAVertex3f;
+
+            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                formatter.write_str("struct RGBAVertex3f")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
+                let pos = seq.next_element()?
+                    .ok_or_else(|| Error::invalid_length(0, &self))?;
+                let col = seq.next_element()?
+                    .ok_or_else(|| Error::invalid_length(1, &self))?;
+                Ok(RGBAVertex3f(pos, col))
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: MapAccess<'de> {
+                let mut pos = None;
+                let mut col = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Pos => {
+                            if pos.is_some() {
+                                return Err(Error::duplicate_field("pos"));
+                            }
+                            pos = Some(map.next_value()?);
+                        }
+                        Field::Col => {
+                            if col.is_some() {
+                                return Err(Error::duplicate_field("col"));
+                            }
+                            col = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let pos = pos.ok_or_else(|| Error::missing_field("pos"))?;
+                let col = col.ok_or_else(|| Error::missing_field("col"))?;
+                Ok(RGBAVertex3f(pos, col))
+            }
+        }
+
+        const FIELDS: &'static [&'static str] = &["pos", "col"];
+
+        deserializer.deserialize_struct("RGBAVertex3f", FIELDS, VertexVisitor)
+    }
+}
+
 #[derive(Clone)]
 #[repr(C, packed)]
 pub struct LightedTexVertex(pub Vec3f, pub TexCoord, pub RGBSColor);

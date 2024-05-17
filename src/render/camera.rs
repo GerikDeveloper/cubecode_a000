@@ -1,6 +1,6 @@
 use std::f32::consts;
 use std::f32::consts::{PI, TAU};
-use crate::render::types::{Mat4f, Vec3f, Vec4f};
+use crate::render::types::{Mat4f, norm_vec3f, Vec3f, Vec4f};
 
 //TODO REWRITE ALL
 
@@ -162,11 +162,14 @@ impl Camera {
     }
 
     fn update(&mut self) {
+        //TODO LAST WITH OFFSET BUT NORM MOVEMENT VEC
         let fres: Vec4f = Mat4f::new().identity().rotate(&self.rot).mul_vec4f([0.0f32, 0.0f32, -1.0f32, 1.0f32]);
-        self.fdir = [fres[0], 0.0, fres[2]];//[fres[0], fres[1], fres[2]];
+        self.fdir = [fres[0], 0.0, fres[2]];
+        norm_vec3f(&mut self.fdir);
         self.dir = [fres[0], fres[1], fres[2]];
         let rres: Vec4f = Mat4f::new().identity().rotate(&self.rot).mul_vec4f([1.0f32, 0.0f32, 0.0f32, 1.0f32]);
         self.rdir = [rres[0], 0.0, rres[2]];//[rres[0], rres[1], rres[2]];
+        norm_vec3f(&mut self.rdir);
         let ures: Vec4f = Mat4f::new().identity().rotate(&self.rot).mul_vec4f([0.0f32, 1.0f32, 0.0f32, 1.0f32]);
         self.udir = [0.0, 1.0, 0.0];//[ures[0], ures[1], ures[2]];
     }

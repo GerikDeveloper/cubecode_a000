@@ -3,3 +3,4 @@ pub mod window;
 pub mod world;
 pub mod render;
 pub mod input;
+pub mod physics;

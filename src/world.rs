@@ -53,6 +53,17 @@ impl World {
         self.chunks[subchunk_pos[0] as usize][subchunk_pos[2] as usize].subchunks[subchunk_pos[1] as usize].data.borrow()[block_pos[1] as usize][block_pos[2] as usize][block_pos[0] as usize]
     }
 
+    pub fn is_obstacle(&self, pos: &Vec3i) -> bool {
+        return if pos[0] >= 0x00 && pos[0] <= 0xFF &&
+            pos[1] >= 0x00 && pos[1] <= 0xFF &&
+            pos[2] >= 0x00 && pos[2] <= 0xFF {
+            let res: Vec3ub = [pos[0] as u8, pos[1] as u8, pos[2] as u8];
+            self.get_block(&res) != AIR_BLOCK_ID
+        } else {
+            true
+        }
+    }
+
     pub fn set_block(&self, pos: &Vec3ub, block_lid: u16) {
         let subchunk_pos: Vec3ub = [pos[0] >> 4, pos[1] >> 4, pos[2] >> 4];
         let block_pos: Vec3ub = [pos[0] & 0x0F, pos[1] & 0x0F, pos[2] & 0x0F];
